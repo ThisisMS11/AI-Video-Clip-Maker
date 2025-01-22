@@ -25,7 +25,6 @@ interface BaseOutput {
 
 export type MongoSaveInput = BaseVideoSettings & {
     status: string;
-    project_name?: string;
     project_id: number;
 };
 
@@ -49,12 +48,12 @@ export interface SettingsType {
     lang: string;
     preferLength: number; // 0-4
     ext?: string;
-    subtitleSwitch: number; // 0-1
-    headlineSwitch: number; // 0-1
+    subtitleSwitch?: number; // 0-1
+    headlineSwitch?: number; // 0-1
     maxClipNumber?: number;
     keywords?: string;
     projectName?: string;
-    removeSilenceSwitch: number; // 0-1
+    removeSilenceSwitch?: number; // 0-1
 }
 
 export type StatusType = keyof typeof STATUS_MAP;

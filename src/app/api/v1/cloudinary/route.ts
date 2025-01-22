@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { v2 as cloudinary, UploadApiOptions } from 'cloudinary';
+import { v2 as cloudinary,UploadApiOptions } from 'cloudinary';
 import { createLoggerWithLabel } from '../../utils/logger';
-import { IMAGE_TYPE, CLOUDINARY_FOLDER } from '@/constants';
+import { MEDIA_TYPE, CLOUDINARY_FOLDER } from '@/constants';
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -11,69 +11,83 @@ cloudinary.config({
 
 const logger = createLoggerWithLabel('CLOUDINARY');
 
-const isValidImage = async (url: string) => {
-    try {
-        const response = await fetch(url, { method: 'HEAD' });
-        const contentType = response.headers.get('content-type');
-        return contentType?.startsWith('image/');
-    } catch (error) {
-        logger.error(`Error validating image type: ${JSON.stringify(error)}`);
-        return false;
-    }
+const getOptimalVideoSettings = (): Partial<any> => {
+    const baseSettings = {
+        video_codec: 'h264:main',
+        quality_analysis: true,
+        audio_codec: 'aac',
+        audio_frequency: 44100,
+        audio_bitrate: '128k',
+    };
+
+    return {
+        ...baseSettings,
+        eager: [
+            {
+                raw_transformation: ['q_auto:good', 'vc_h264:main'].join('/'),
+                format: 'mp4',
+            },
+        ],
+        eager_async: true,
+    };
 };
 
 export async function POST(request: NextRequest) {
-    const { imageUrl, type } = await request.json();
+    const { videoUrl, type } = await request.json();
 
-    if (!imageUrl) {
-        logger.warn('Image URL is required');
+    if (!videoUrl) {
+        logger.warn('Video URL is required');
         return NextResponse.json(
-            { error: 'Image URL is required' },
-            { status: 400 }
-        );
-    }
-
-    if (!(await isValidImage(imageUrl))) {
-        logger.warn('Invalid image type');
-        return NextResponse.json(
-            { error: 'Invalid image type. Supported types: JPG, PNG, WebP' },
+            { error: 'Video URL is required' },
             { status: 400 }
         );
     }
 
     const folder =
-        type === IMAGE_TYPE.ORIGINAL
+        type === MEDIA_TYPE.ORIGINAL
             ? CLOUDINARY_FOLDER.ORIGINAL
-            : CLOUDINARY_FOLDER.ENHANCED;
+            : CLOUDINARY_FOLDER.CLIPPED;
 
     try {
         const uploadOptions: UploadApiOptions = {
-            resource_type: 'image',
+            resource_type: 'video',
             folder: folder,
-            quality_analysis: true,
-            transformation: [
-                {
-                    quality: 100,
-                    fetch_format: 'auto',
-                },
-            ],
-            flags: 'preserve_transparency',
-            delivery_type: 'upload',
         };
 
+        // Modified settings for original videos
+        if (type === MEDIA_TYPE.ORIGINAL) {
+            const videoSettings = getOptimalVideoSettings();
+            Object.assign(uploadOptions, {
+                ...videoSettings,
+            });
+        } else {
+            Object.assign(uploadOptions, {
+                quality_analysis: true,
+                transformation: [
+                    {
+                        quality: 'auto:best',
+                        audio_codec: 'aac',
+                        audio_frequency: 44100,
+                        audio_bitrate: '128k',
+                    },
+                ],
+            });
+        }
+
         logger.info(
-            `Uploading image type: ${type} to cloudinary with options: ${JSON.stringify(uploadOptions)}`
+            `Uploading video type : ${type} to cloudinary with options: ${JSON.stringify(uploadOptions)}`
         );
 
         const result = await cloudinary.uploader.upload(
-            imageUrl,
+            videoUrl,
             uploadOptions
         );
 
-        logger.info(`Image uploaded to cloudinary: ${result.secure_url}`);
+        logger.info(`Video uploaded to cloudinary: ${result.secure_url}`);
 
+        // Return appropriate URL based on video type
         const responseUrl =
-            type === IMAGE_TYPE.ORIGINAL && result.eager?.[0]?.secure_url
+            type === MEDIA_TYPE.ORIGINAL && result.eager?.[0]?.secure_url
                 ? result.eager[0].secure_url
                 : result.secure_url;
 
@@ -83,10 +97,10 @@ export async function POST(request: NextRequest) {
         });
     } catch (error) {
         logger.error(
-            `Error uploading image to cloudinary: ${JSON.stringify(error)}`
+            `Error uploading video to cloudinary: ${JSON.stringify(error)}`
         );
         return NextResponse.json(
-            { error: 'Failed to upload image' },
+            { error: 'Failed to upload video' },
             { status: 500 }
         );
     }

@@ -175,7 +175,7 @@ const Statistics = ({ data }: { data: PredictionResponse | null }) => {
                             </div>
                         </div>
 
-                        {data.status === STATUS_MAP.succeeded && (
+                        {data.status === STATUS_MAP.SUCCEEDED && (
                             <div className="mt-3 flex gap-4">
                                 <Button
                                     className="flex-1"

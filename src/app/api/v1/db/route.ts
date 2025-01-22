@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createLoggerWithLabel } from '../../utils/logger';
 import { currentUser } from '@clerk/nextjs/server';
 import clientPromise from '@/app/api/utils/mongoClient';
-import { MongoSave } from '@/types';
+import { MongoSaveInput } from '@/types';
 import { STATUS_MAP } from '@/constants';
 const logger = createLoggerWithLabel('DB');
 
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        let body: MongoSave;
+        let body: ;
         try {
             body = await request.json();
         } catch (e) {

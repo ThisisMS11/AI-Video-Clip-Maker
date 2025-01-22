@@ -13,14 +13,14 @@ export const RETRIES = {
     CLOUDINARY_SERVICE: 5,
 } as const;
 
-export const IMAGE_TYPE = {
+export const MEDIA_TYPE = {
     ORIGINAL: 'original',
     PROCESSED: 'processed',
 } as const;
 
 export const CLOUDINARY_FOLDER = {
-    ORIGINAL: 'task_3_Age_Transformation_GIFs_Original',
-    ENHANCED: 'task_3_Age_Transformation_GIFs_Enhanced',
+    ORIGINAL: 'task_4_AI_Generated_Clips_Original',
+    CLIPPED: 'task_4_AI_Generated_Clips_Clipped_Videos',
 } as const;
 
 export const requiredEnvVars = [

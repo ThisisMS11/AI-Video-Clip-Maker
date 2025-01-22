@@ -15,7 +15,7 @@ export default function RightSideProcess({
     onRetry,
 }: VideoPreviewProps) {
     switch (status) {
-        case STATUS_MAP.uploading:
+        case STATUS_MAP.UPLOADING:
             return (
                 <div className="space-y-4  h-full  flex flex-col items-center justify-center">
                     <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center animate-pulse">
@@ -27,7 +27,7 @@ export default function RightSideProcess({
                     <Progress value={33} className="w-[65%] mx-auto" />
                 </div>
             );
-        case STATUS_MAP.processing:
+        case STATUS_MAP.PROCESSING:
             return (
                 <div className="space-y-4  h-full  flex flex-col items-center justify-center">
                     <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center animate-spin">
@@ -39,7 +39,7 @@ export default function RightSideProcess({
                     <Progress value={66} className="w-[65%] mx-auto" />
                 </div>
             );
-        case STATUS_MAP.succeeded:
+        case STATUS_MAP.SUCCEEDED:
             return (
                 <div className="h-[60%]">
                     {transformedGIFUrl ? (
@@ -59,7 +59,7 @@ export default function RightSideProcess({
                     )}
                 </div>
             );
-        case STATUS_MAP.failed:
+        case STATUS_MAP.FAILED:
             return (
                 <div className="h-[60%] flex items-center flex-col justify-center space-y-4">
                     <div className="mx-auto w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
@@ -78,7 +78,7 @@ export default function RightSideProcess({
                     </Button>
                 </div>
             );
-        case STATUS_MAP.error:
+        case STATUS_MAP.ERROR:
             return (
                 <div className="h-full flex items-center flex-col justify-center space-y-4">
                     <div className="mx-auto w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">

@@ -1,7 +1,7 @@
 'use client';
 import { useRef, useState } from 'react';
 import { useImageProcessing } from '@/hooks/useImageProcessing';
-import ImageUploader from '@/components/image-uploader';
+import ImageUploader from '@/components/video-uploader';
 import RightSideProcess from '@/components/right-side-process';
 import { ImageHistoryModal } from './history-modal';
 import ActionButtons from '@/components/action-buttons';
@@ -50,18 +50,6 @@ export default function ImageTransformer() {
 
     const [_isRetrying, setIsRetrying] = useState(false);
     const [hasFailed, setHasFailed] = useState(false);
-
-    // videoUrl: string;
-    // videoType: number; // 1-5
-    // lang: string;
-    // preferLength: number; // 0-4
-    // ext?: string;
-    // subtitleSwitch: number; // 0-1
-    // headlineSwitch: number; // 0-1
-    // maxClipNumber?: number;
-    // keywords?: string;
-    // projectName?: string;
-    // removeSilenceSwitch: number; // 0-1
 
     const [settings, setSettings] = useState<SettingsType | null>({
         videoUrl: '',
