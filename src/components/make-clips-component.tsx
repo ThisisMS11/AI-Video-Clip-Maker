@@ -19,11 +19,11 @@ import {
     Input,
     Button,
 } from '@/imports/Shadcn_imports';
-import { Atom ,History} from 'lucide-react';
+import { Atom, History } from 'lucide-react';
 import { useImageTransformingHandler } from '@/hooks/useImageTransformingHandler';
 import { usePredictionHandling } from '@/hooks/usePredictionHandling';
 import { RETRIES, STATUS_MAP } from '@/constants';
-import { PredictionResponse, SettingsType } from '@/types';
+import { SettingsType } from '@/types';
 import { WAIT_TIMES, LANGUAGE_MAP } from '@/constants';
 import { delay } from '@/utils/utilFunctions';
 
@@ -51,7 +51,31 @@ export default function ImageTransformer() {
     const [_isRetrying, setIsRetrying] = useState(false);
     const [hasFailed, setHasFailed] = useState(false);
 
-    const [settings, setSettings] = useState<SettingsType | null>(null);
+    // videoUrl: string;
+    // videoType: number; // 1-5
+    // lang: string;
+    // preferLength: number; // 0-4
+    // ext?: string;
+    // subtitleSwitch: number; // 0-1
+    // headlineSwitch: number; // 0-1
+    // maxClipNumber?: number;
+    // keywords?: string;
+    // projectName?: string;
+    // removeSilenceSwitch: number; // 0-1
+
+    const [settings, setSettings] = useState<SettingsType | null>({
+        videoUrl: '',
+        videoType: 1,
+        lang: LANGUAGE_MAP['English'],
+        preferLength: 0,
+        ext: '',
+        maxClipNumber: 5,
+        keywords: '',
+        projectName: '',
+        subtitleSwitch: 1,
+        headlineSwitch: 1,
+        removeSilenceSwitch: 1,
+    });
 
     /* persistent states */
     const retryAttemptsRef = useRef(0);
@@ -262,7 +286,7 @@ export default function ImageTransformer() {
     // };
 
     const handleSettingsUpdate = (key: keyof SettingsType, value: any) => {
-        setSettings(prev => prev ? { ...prev, [key]: value } : null);
+        setSettings((prev) => (prev ? { ...prev, [key]: value } : null));
     };
 
     return (
@@ -294,7 +318,7 @@ export default function ImageTransformer() {
                                 <AdvancedSettings
                                     settings={settings}
                                     onUpdateSetting={handleSettingsUpdate}
-                                    onMaskUpload={() => { }}
+                                    onMaskUpload={() => {}}
                                     uploadMaskKey={0}
                                 />
 
@@ -306,7 +330,10 @@ export default function ImageTransformer() {
                                     onHistory={() => setHistoryModalOpen(true)}
                                 /> */}
 
-                                <Button className="flex-1 rounded-lg" onClick={() => setHistoryModalOpen(true)}>
+                                <Button
+                                    className="flex-1 rounded-lg"
+                                    onClick={() => setHistoryModalOpen(true)}
+                                >
                                     <History className="w-4 h-4 mr-2" />
                                     View History
                                 </Button>

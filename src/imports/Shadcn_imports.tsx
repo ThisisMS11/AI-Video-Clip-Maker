@@ -43,5 +43,5 @@ export {
 export { Progress } from '@/components/ui/progress';
 export { Slider } from '@/components/ui/slider';
 export { Separator } from '@/components/ui/separator';
-
+export { Switch } from '@/components/ui/switch';
 export { toast } from 'sonner';

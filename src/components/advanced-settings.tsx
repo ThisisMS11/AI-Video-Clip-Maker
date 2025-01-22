@@ -7,11 +7,12 @@ import {
     SelectValue,
     SelectContent,
     SelectItem,
-    Slider,
     Label,
     Input,
+    Button,
+    Switch,
 } from '@/imports/Shadcn_imports';
-import {  SETTINGS_MAP,LANGUAGE_MAP} from '@/constants';
+import { SETTINGS_MAP, LANGUAGE_MAP } from '@/constants';
 
 interface AdvancedSettingsProps {
     settings: SettingsType | null;
@@ -19,7 +20,6 @@ interface AdvancedSettingsProps {
     onMaskUpload: (info: any) => void;
     uploadMaskKey: number;
 }
-
 
 export default function AdvancedSettings({
     settings,
@@ -34,21 +34,25 @@ export default function AdvancedSettings({
             <div className="space-y-3">
                 <div className="space-y-2">
                     <Label>Language</Label>
-                    
+
                     <Select
                         value={settings?.lang}
                         defaultValue={LANGUAGE_MAP['English']}
-                        onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.LANG, value)}
+                        onValueChange={(value) =>
+                            onUpdateSetting(SETTINGS_MAP.LANG, value)
+                        }
                     >
                         <SelectTrigger>
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            {Object.entries(LANGUAGE_MAP).map(([displayText, value]) => (
-                                <SelectItem key={value} value={value}>
-                                    {displayText}
-                                </SelectItem>
-                            ))}
+                            {Object.entries(LANGUAGE_MAP).map(
+                                ([displayText, value]) => (
+                                    <SelectItem key={value} value={value}>
+                                        {displayText}
+                                    </SelectItem>
+                                )
+                            )}
                         </SelectContent>
                     </Select>
                 </div>
@@ -57,7 +61,12 @@ export default function AdvancedSettings({
                     <Label>Video Type</Label>
                     <Select
                         value={settings?.videoType.toString()}
-                        onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.VIDEO_TYPE, parseInt(value))}
+                        onValueChange={(value) =>
+                            onUpdateSetting(
+                                SETTINGS_MAP.VIDEO_TYPE,
+                                parseInt(value)
+                            )
+                        }
                     >
                         <SelectTrigger>
                             <SelectValue />
@@ -76,7 +85,12 @@ export default function AdvancedSettings({
                     <Label>Preferred Length</Label>
                     <Select
                         value={settings?.preferLength.toString()}
-                        onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.PREFER_LENGTH, parseInt(value))}
+                        onValueChange={(value) =>
+                            onUpdateSetting(
+                                SETTINGS_MAP.PREFER_LENGTH,
+                                parseInt(value)
+                            )
+                        }
                     >
                         <SelectTrigger>
                             <SelectValue />
@@ -96,7 +110,9 @@ export default function AdvancedSettings({
                         <Label>File Extension</Label>
                         <Select
                             value={settings?.ext}
-                            onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.EXT, value)}
+                            onValueChange={(value) =>
+                                onUpdateSetting(SETTINGS_MAP.EXT, value)
+                            }
                         >
                             <SelectTrigger>
                                 <SelectValue />
@@ -116,7 +132,12 @@ export default function AdvancedSettings({
                     <Input
                         type="url"
                         value={settings?.videoUrl}
-                        onChange={(e) => onUpdateSetting(SETTINGS_MAP.VIDEO_URL, e.target.value)}
+                        onChange={(e) =>
+                            onUpdateSetting(
+                                SETTINGS_MAP.VIDEO_URL,
+                                e.target.value
+                            )
+                        }
                         placeholder="https://"
                     />
                 </div>
@@ -125,7 +146,12 @@ export default function AdvancedSettings({
                     <Label>Project Name (Optional)</Label>
                     <Input
                         value={settings?.projectName}
-                        onChange={(e) => onUpdateSetting(SETTINGS_MAP.PROJECT_NAME, e.target.value)}
+                        onChange={(e) =>
+                            onUpdateSetting(
+                                SETTINGS_MAP.PROJECT_NAME,
+                                e.target.value
+                            )
+                        }
                         placeholder="Enter project name"
                     />
                 </div>
@@ -134,7 +160,12 @@ export default function AdvancedSettings({
                     <Label>Keywords (Optional)</Label>
                     <Input
                         value={settings?.keywords}
-                        onChange={(e) => onUpdateSetting(SETTINGS_MAP.KEYWORDS, e.target.value)}
+                        onChange={(e) =>
+                            onUpdateSetting(
+                                SETTINGS_MAP.KEYWORDS,
+                                e.target.value
+                            )
+                        }
                         placeholder="keyword1, keyword2, keyword3"
                     />
                 </div>
@@ -144,70 +175,58 @@ export default function AdvancedSettings({
                     <Input
                         type="number"
                         value={settings?.maxClipNumber}
-                        onChange={(e) => onUpdateSetting(SETTINGS_MAP.MAX_CLIP_NUMBER, parseInt(e.target.value))}
+                        onChange={(e) =>
+                            onUpdateSetting(
+                                SETTINGS_MAP.MAX_CLIP_NUMBER,
+                                parseInt(e.target.value)
+                            )
+                        }
                         min={0}
                         max={100}
                         placeholder="Enter number (0-100)"
                     />
                 </div>
 
-                <div className="space-y-2">
-                    <Label>Template ID (Optional)</Label>
-                    <Input
-                        type="number"
-                        value={settings?.templateId}
-                        onChange={(e) => onUpdateSetting(SETTINGS_MAP.TEMPLATE_ID, parseInt(e.target.value))}
-                        placeholder="Enter template ID"
-                    />
-                </div>
+                <div className="space-y-2 flex items-center justify-between gap-4">
+                    <div className="flex items-center justify-between gap-16">
+                        <div className="flex items-center gap-2">
+                            <Label>Subtitle</Label>
+                            <Switch
+                                checked={settings?.subtitleSwitch === 1}
+                                onCheckedChange={(checked) =>
+                                    onUpdateSetting(
+                                        SETTINGS_MAP.SUBTITLE_SWITCH,
+                                        checked ? 1 : 0
+                                    )
+                                }
+                            />
+                        </div>
 
-                <div className="space-y-2 flex items-center gap-4">
-                    <div>
-                        <Label>Subtitle</Label>
-                        <Select
-                            value={settings?.subtitleSwitch.toString()}
-                            onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.SUBTITLE_SWITCH, parseInt(value))}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="1">On</SelectItem>
-                                <SelectItem value="0">Off</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                        <div className="flex items-center gap-2">
+                            <Label>Headline</Label>
+                            <Switch
+                                checked={settings?.headlineSwitch === 1}
+                                onCheckedChange={(checked) =>
+                                    onUpdateSetting(
+                                        SETTINGS_MAP.HEADLINE_SWITCH,
+                                        checked ? 1 : 0
+                                    )
+                                }
+                            />
+                        </div>
 
-                    <div>
-                        <Label>Headline</Label>
-                        <Select
-                            value={settings?.headlineSwitch.toString()}
-                            onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.HEADLINE_SWITCH, parseInt(value))}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="1">On</SelectItem>
-                                <SelectItem value="0">Off</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div>
-                        <Label>Remove Silence</Label>
-                        <Select
-                            value={settings?.removeSilenceSwitch.toString()}
-                            onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.REMOVE_SILENCE_SWITCH, parseInt(value))}
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="1">On</SelectItem>
-                                <SelectItem value="0">Off</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-2">
+                            <Label>Remove Silence</Label>
+                            <Switch
+                                checked={settings?.removeSilenceSwitch === 1}
+                                onCheckedChange={(checked) =>
+                                    onUpdateSetting(
+                                        SETTINGS_MAP.REMOVE_SILENCE_SWITCH,
+                                        checked ? 1 : 0
+                                    )
+                                }
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
