@@ -1,6 +1,6 @@
 'use client';
 import { SignedIn, SignedOut } from '@clerk/nextjs';
-import AgeTransformer from '@/components/age-transformation-component';
+import MakeClipsComponent from '@/components/make-clips-component';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { CheckCircle2 } from 'lucide-react';
@@ -16,7 +16,7 @@ export default function App() {
     return (
         <div className="h-[98vh] w-[100vw] flex justify-center items-center">
             <SignedIn>
-                <AgeTransformer />
+                <MakeClipsComponent />
             </SignedIn>
             <SignedOut>
                 <div className="text-center space-y-4">

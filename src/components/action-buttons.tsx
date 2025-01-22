@@ -23,23 +23,23 @@ export default function ActionButtons({
             >
                 {/* Icon based on status */}
                 {[
-                    STATUS_MAP.default,
-                    STATUS_MAP.processing,
-                    STATUS_MAP.uploading,
-                    STATUS_MAP.succeeded,
+                    STATUS_MAP.DEFAULT,
+                    STATUS_MAP.PROCESSING,
+                    STATUS_MAP.UPLOADING,
+                    STATUS_MAP.SUCCEEDED,
                 ].includes(status as any) && <Wand2 className="w-4 h-4 mr-2" />}
-                {status === STATUS_MAP.failed && (
+                {status === STATUS_MAP.FAILED && (
                     <RotateCw className="w-4 h-4 mr-2" />
                 )}
 
                 {/* Button text based on status */}
                 {{
-                    default: 'Transform',
-                    uploading: 'Uploading Image...',
-                    processing: 'Transforming Image...',
+                    default: 'Make Clips',
+                    uploading: 'Uploading Video...',
+                    processing: 'Making Clips...',
                     failed: 'Retry...',
-                    succeeded: 'Transformed Image',
-                }[status] || 'Transform Image'}
+                    succeeded: 'Clips Made',
+                }[status] || 'Make Clips'}
             </Button>
 
             <Button className="flex-1 rounded-lg" onClick={onHistory}>

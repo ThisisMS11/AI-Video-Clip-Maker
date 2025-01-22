@@ -1,4 +1,4 @@
-import { VideoSettings } from '@/types';
+import { SettingsType } from '@/types';
 import { FileUploaderMinimal } from '@uploadcare/react-uploader';
 import '@uploadcare/react-uploader/core.css';
 import {
@@ -11,14 +11,15 @@ import {
     Label,
     Input,
 } from '@/imports/Shadcn_imports';
-import { TASKS_MAP, VIDEO_SETTINGS_MAP } from '@/constants';
+import {  SETTINGS_MAP,LANGUAGE_MAP} from '@/constants';
 
 interface AdvancedSettingsProps {
-    settings: VideoSettings;
-    onUpdateSetting: (key: keyof VideoSettings, value: any) => void;
+    settings: SettingsType | null;
+    onUpdateSetting: (key: keyof SettingsType, value: any) => void;
     onMaskUpload: (info: any) => void;
     uploadMaskKey: number;
 }
+
 
 export default function AdvancedSettings({
     settings,
@@ -32,212 +33,183 @@ export default function AdvancedSettings({
 
             <div className="space-y-3">
                 <div className="space-y-2">
-                    <Label>Tasks</Label>
+                    <Label>Language</Label>
+                    
                     <Select
-                        defaultValue={TASKS_MAP.faceRestoration}
-                        onValueChange={(value: any) =>
-                            onUpdateSetting(VIDEO_SETTINGS_MAP.tasks, value)
-                        }
+                        value={settings?.lang}
+                        defaultValue={LANGUAGE_MAP['English']}
+                        onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.LANG, value)}
                     >
                         <SelectTrigger>
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value={TASKS_MAP.faceRestoration}>
-                                Face Restoration
-                            </SelectItem>
-                            <SelectItem
-                                value={TASKS_MAP.faceRestorationAndColorization}
-                            >
-                                Face Restoration and Colorization
-                            </SelectItem>
-                            <SelectItem
-                                value={
-                                    TASKS_MAP.faceRestorationAndColorizationAndInpainting
-                                }
-                            >
-                                Face Restoration, Colorization and Inpainting
-                            </SelectItem>
+                            {Object.entries(LANGUAGE_MAP).map(([displayText, value]) => (
+                                <SelectItem key={value} value={value}>
+                                    {displayText}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
+
                 <div className="space-y-2">
-                    <Label>Number of Inference Steps</Label>
-                    <Slider
-                        value={[settings.numInferenceSteps]}
-                        onValueChange={(value: any) =>
-                            onUpdateSetting(
-                                VIDEO_SETTINGS_MAP.numInferenceSteps,
-                                value[0]
-                            )
-                        }
-                        min={1}
-                        max={100}
-                        step={1}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                        Current: {settings.numInferenceSteps}
-                    </p>
+                    <Label>Video Type</Label>
+                    <Select
+                        value={settings?.videoType.toString()}
+                        onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.VIDEO_TYPE, parseInt(value))}
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="1">Remote Video File</SelectItem>
+                            <SelectItem value="2">YouTube Link</SelectItem>
+                            <SelectItem value="3">Google Drive Link</SelectItem>
+                            <SelectItem value="4">Vimeo Link</SelectItem>
+                            <SelectItem value="5">StreamYard Link</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 <div className="space-y-2">
-                    <Label>Decode Chunk Size</Label>
-                    <Slider
-                        value={[settings.decodeChunkSize]}
-                        onValueChange={(value: any) =>
-                            onUpdateSetting(
-                                VIDEO_SETTINGS_MAP.decodeChunkSize,
-                                value[0]
-                            )
-                        }
-                        min={1}
-                        max={32}
-                        step={1}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                        Current: {settings.decodeChunkSize}
-                    </p>
+                    <Label>Preferred Length</Label>
+                    <Select
+                        value={settings?.preferLength.toString()}
+                        onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.PREFER_LENGTH, parseInt(value))}
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="0">Auto</SelectItem>
+                            <SelectItem value="1">Less than 30s</SelectItem>
+                            <SelectItem value="2">30s to 60s</SelectItem>
+                            <SelectItem value="3">60s to 90s</SelectItem>
+                            <SelectItem value="4">90s to 3min</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </div>
 
-                <div className="space-y-2">
-                    <Label>Overlap Frames</Label>
-                    <Slider
-                        value={[settings.overlap]}
-                        onValueChange={(value: any) =>
-                            onUpdateSetting(
-                                VIDEO_SETTINGS_MAP.overlap,
-                                value[0]
-                            )
-                        }
-                        min={0}
-                        max={10}
-                        step={1}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                        Current: {settings.overlap}
-                    </p>
-                </div>
-
-                <div className="space-y-2">
-                    <Label>Noise Augmentation Strength</Label>
-                    <Slider
-                        value={[settings.noiseAugStrength]}
-                        onValueChange={(value: any) =>
-                            onUpdateSetting(
-                                VIDEO_SETTINGS_MAP.noiseAugStrength,
-                                value[0]
-                            )
-                        }
-                        min={0}
-                        max={1}
-                        step={0.1}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                        Current: {settings.noiseAugStrength.toFixed(1)}
-                    </p>
-                </div>
-
-                <div className="space-y-2">
-                    <Label>Appearance Guidance Scale</Label>
+                {settings?.videoType === 1 && (
                     <div className="space-y-2">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <Label className="text-xs">Minimum</Label>
-                                <Slider
-                                    value={[
-                                        settings.minAppearanceGuidanceScale,
-                                    ]}
-                                    onValueChange={(value: any) =>
-                                        onUpdateSetting(
-                                            VIDEO_SETTINGS_MAP.minAppearanceGuidanceScale,
-                                            value[0]
-                                        )
-                                    }
-                                    min={0}
-                                    max={5}
-                                    step={0.1}
-                                />
-                            </div>
-                            <div>
-                                <Label className="text-xs">Maximum</Label>
-                                <Slider
-                                    value={[
-                                        settings.maxAppearanceGuidanceScale,
-                                    ]}
-                                    onValueChange={(value: any) =>
-                                        onUpdateSetting(
-                                            VIDEO_SETTINGS_MAP.maxAppearanceGuidanceScale,
-                                            value[0]
-                                        )
-                                    }
-                                    min={0}
-                                    max={5}
-                                    step={0.1}
-                                />
-                            </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                            Current:{' '}
-                            {settings.minAppearanceGuidanceScale.toFixed(1)} -{' '}
-                            {settings.maxAppearanceGuidanceScale.toFixed(1)}
-                        </p>
-                    </div>
-                </div>
-
-                <div className="space-y-2">
-                    <Label>I2I Noise Strength</Label>
-                    <Slider
-                        value={[settings.i2iNoiseStrength]}
-                        onValueChange={(value: any) =>
-                            onUpdateSetting(
-                                VIDEO_SETTINGS_MAP.i2iNoiseStrength,
-                                value[0]
-                            )
-                        }
-                        min={0}
-                        max={2}
-                        step={0.1}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                        Current: {settings.i2iNoiseStrength.toFixed(1)}
-                    </p>
-                </div>
-
-                <div className="space-y-2">
-                    <Label>Seed (Optional)</Label>
-                    <Input
-                        type="number"
-                        value={settings.seed}
-                        onChange={(e) =>
-                            onUpdateSetting(
-                                VIDEO_SETTINGS_MAP.seed,
-                                e.target.value
-                            )
-                        }
-                        placeholder="Random"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                        Leave empty for random seed
-                    </p>
-                </div>
-
-                {settings.tasks ===
-                    TASKS_MAP.faceRestorationAndColorizationAndInpainting && (
-                    <div className="space-y-2">
-                        <Label>Mask</Label>
-                        <FileUploaderMinimal
-                            classNameUploader="uc-light uc-red"
-                            pubkey={
-                                process.env.NEXT_PUBLIC_UPLOADCARE_PUBLIC_KEY ||
-                                ''
-                            }
-                            onFileUploadSuccess={onMaskUpload}
-                            multiple={false}
-                            accept="image/*"
-                            key={uploadMaskKey}
-                        />
+                        <Label>File Extension</Label>
+                        <Select
+                            value={settings?.ext}
+                            onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.EXT, value)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="mp4">MP4</SelectItem>
+                                <SelectItem value="3gp">3GP</SelectItem>
+                                <SelectItem value="avi">AVI</SelectItem>
+                                <SelectItem value="mov">MOV</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 )}
+
+                <div className="space-y-2">
+                    <Label>Video URL</Label>
+                    <Input
+                        type="url"
+                        value={settings?.videoUrl}
+                        onChange={(e) => onUpdateSetting(SETTINGS_MAP.VIDEO_URL, e.target.value)}
+                        placeholder="https://"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label>Project Name (Optional)</Label>
+                    <Input
+                        value={settings?.projectName}
+                        onChange={(e) => onUpdateSetting(SETTINGS_MAP.PROJECT_NAME, e.target.value)}
+                        placeholder="Enter project name"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label>Keywords (Optional)</Label>
+                    <Input
+                        value={settings?.keywords}
+                        onChange={(e) => onUpdateSetting(SETTINGS_MAP.KEYWORDS, e.target.value)}
+                        placeholder="keyword1, keyword2, keyword3"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label>Max Clip Number (Optional)</Label>
+                    <Input
+                        type="number"
+                        value={settings?.maxClipNumber}
+                        onChange={(e) => onUpdateSetting(SETTINGS_MAP.MAX_CLIP_NUMBER, parseInt(e.target.value))}
+                        min={0}
+                        max={100}
+                        placeholder="Enter number (0-100)"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label>Template ID (Optional)</Label>
+                    <Input
+                        type="number"
+                        value={settings?.templateId}
+                        onChange={(e) => onUpdateSetting(SETTINGS_MAP.TEMPLATE_ID, parseInt(e.target.value))}
+                        placeholder="Enter template ID"
+                    />
+                </div>
+
+                <div className="space-y-2 flex items-center gap-4">
+                    <div>
+                        <Label>Subtitle</Label>
+                        <Select
+                            value={settings?.subtitleSwitch.toString()}
+                            onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.SUBTITLE_SWITCH, parseInt(value))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="1">On</SelectItem>
+                                <SelectItem value="0">Off</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label>Headline</Label>
+                        <Select
+                            value={settings?.headlineSwitch.toString()}
+                            onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.HEADLINE_SWITCH, parseInt(value))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="1">On</SelectItem>
+                                <SelectItem value="0">Off</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label>Remove Silence</Label>
+                        <Select
+                            value={settings?.removeSilenceSwitch.toString()}
+                            onValueChange={(value) => onUpdateSetting(SETTINGS_MAP.REMOVE_SILENCE_SWITCH, parseInt(value))}
+                        >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="1">On</SelectItem>
+                                <SelectItem value="0">Off</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
             </div>
         </div>
     );

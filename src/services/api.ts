@@ -1,9 +1,9 @@
 import { fetchClient } from '../utils/fetchClient';
 import {
     PredictionResponse,
-    MongoSave,
+    MongoSaveInput,
     ModelSettings,
-    ImageDocument,
+    MongoFetchResult,
 } from '../types';
 
 export const cloudinaryService = {
@@ -27,7 +27,7 @@ export const cloudinaryService = {
 };
 
 export const databaseService = {
-    saveInfo: async (inputData: MongoSave) => {
+    saveInfo: async (inputData: MongoSaveInput) => {
         try {
             const data = await fetchClient('db', {
                 method: 'POST',
@@ -44,10 +44,10 @@ export const databaseService = {
 
     fetchHistory: async () => {
         try {
-            const data = await fetchClient<{ data: ImageDocument[] }>('db', {
+            const data = await fetchClient<{ data: MongoFetchResult[] }>('db', {
                 method: 'GET',
             });
-            return data.data as ImageDocument[];
+            return data.data as MongoFetchResult[];
         } catch (error) {
             console.error('Failed to fetch history:', error);
             throw new Error('Failed to fetch history');
