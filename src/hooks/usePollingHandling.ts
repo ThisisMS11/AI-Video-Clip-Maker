@@ -18,23 +18,23 @@ export const usePollingHandling = () => {
         try {
             const response: APIResponse =
                 await vizardService.getPollResults(project_id);
-            if (!response.success) {
-                throw new Error(response.message);
-            }
             return response;
         } catch (error) {
-            console.error('Polling error:', error);
             throw error;
         }
     };
 
     /* Handle Prediction Success : upload replicate output to cloudinary and save to database */
-    const saveInputData = async (project_id: number, data: SettingsType) => {
+    const saveInputData = async (
+        project_id: number,
+        data: SettingsType,
+        cloudinaryUrl: string
+    ) => {
         try {
             const settings = {
                 project_id,
                 status: STATUS_MAP.PROCESSING,
-                video_url: data.videoUrl,
+                video_url: cloudinaryUrl,
                 video_type: data.videoType,
                 lang: data.lang,
                 prefer_length: data.preferLength,
@@ -53,7 +53,6 @@ export const usePollingHandling = () => {
             }
             return response;
         } catch (error) {
-            console.error('Error in saving input data :', error);
             throw error;
         }
     };
@@ -69,7 +68,6 @@ export const usePollingHandling = () => {
             }
             return response;
         } catch (error) {
-            console.error('Error in saving output data:', error);
             throw error;
         }
     };
@@ -87,7 +85,6 @@ export const usePollingHandling = () => {
             }
             return response;
         } catch (error) {
-            console.error('Error in updating status:', error);
             throw error;
         }
     };

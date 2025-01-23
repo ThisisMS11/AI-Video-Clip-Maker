@@ -31,6 +31,9 @@ export async function POST(request: NextRequest) {
         }
 
         const { project_id, outputs } = body;
+        logger.info(
+            `projectID : ${project_id} outputs : ${JSON.stringify(outputs)}`
+        );
         if (!project_id) {
             logger.warn('Missing project_id in request');
             return makeResponse(400, false, 'project_id is required', null);
@@ -95,23 +98,29 @@ export async function POST(request: NextRequest) {
         /* upload all the video files to cloudinary first and then replace the document.video_url with cloudinary obtained url */
         const uploadedDocuments = await Promise.all(
             documents.map(async (document) => {
-                const cloudinaryResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/v1/cloudinary`, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        mediaUrl: document.video_url,
-                        type: MEDIA_TYPE.PROCESSED
-                    })
-                });
+                const cloudinaryResponse = await fetch(
+                    `${process.env.NEXT_PUBLIC_APP_URL}/api/v1/cloudinary`,
+                    {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            mediaUrl: document.video_url,
+                            type: MEDIA_TYPE.PROCESSED,
+                        }),
+                    }
+                );
 
                 const { data } = await cloudinaryResponse.json();
                 return {
                     ...document,
-                    video_url: data.url
+                    video_url: data.url,
                 };
             })
         );
 
+        logger.info(`uploadedDocuments : ${JSON.stringify(uploadedDocuments)}`);
+
         // Insert documents if any remain after filtering
+        logger.info(`Inserting ${uploadedDocuments.length} documents into DB`);
         const result =
             uploadedDocuments.length > 0
                 ? await collection.insertMany(uploadedDocuments)

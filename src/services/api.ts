@@ -87,9 +87,9 @@ export const vizardService = {
     getPollResults: async (project_id: number) => {
         console.log('CALLING POLLING RESULT');
         try {
-            const data = await fetchClient<APIResponse>('vizard/polling', {
-                params: { project_id: String(project_id) },
-            });
+            const data = await fetchClient<APIResponse>(
+                `vizard/polling/${project_id}`
+            );
             return data;
         } catch (error) {
             throw error;

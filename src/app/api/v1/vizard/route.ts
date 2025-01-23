@@ -65,10 +65,10 @@ function validateRequirements(settings: SettingsType) {
     }
 
     /* check whether prefer length is one from [0,1,2,3,4] or not */
-    if (![0, 1, 2, 3, 4].includes(Number(settings.preferLength))) {
+    if (settings.preferLength?.length == 0) {
         return {
             validated: false,
-            message: 'Invalid prefer length. Must be between 0-4',
+            message: 'Choose at least one preferlength option',
             inCorrectEntities: [SETTINGS_MAP.PREFER_LENGTH],
         };
     }
@@ -126,9 +126,7 @@ export async function POST(request: NextRequest) {
         return makeResponse(200, true, 'Clips making initiated', data);
     } catch (error) {
         if (error instanceof Error) {
-            logger.error(
-                `Replicate AI Age transformation API error: ${error.message}`
-            );
+            logger.error(`Vizard API error: ${error.message}`);
 
             if (error.message.includes('auth')) {
                 return makeResponse(401, false, 'Authentication failed', null);
@@ -138,9 +136,7 @@ export async function POST(request: NextRequest) {
                 return makeResponse(429, false, 'Rate limit exceeded', null);
             }
         } else {
-            logger.error(
-                `Replicate AI Age transformation API error: ${JSON.stringify(error)}`
-            );
+            logger.error(`Vizard API error: ${JSON.stringify(error)}`);
         }
 
         return makeResponse(500, false, 'Failed to process image', null);

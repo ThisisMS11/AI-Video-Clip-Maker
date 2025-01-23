@@ -1,5 +1,6 @@
 import { SettingsType } from '@/types';
 import '@uploadcare/react-uploader/core.css';
+import { DropdownMenuCheckboxItemProps } from '@radix-ui/react-dropdown-menu';
 import {
     Select,
     SelectTrigger,
@@ -9,8 +10,15 @@ import {
     Label,
     Input,
     Switch,
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/imports/Shadcn_imports';
 import { SETTINGS_MAP, LANGUAGE_MAP } from '@/constants';
+type Checked = DropdownMenuCheckboxItemProps['checked'];
 
 interface AdvancedSettingsProps {
     settings: SettingsType | null;
@@ -91,26 +99,70 @@ export default function AdvancedSettings({
 
                 <div className="space-y-2">
                     <Label>Preferred Length</Label>
-                    <Select
-                        value={settings?.preferLength.toString()}
-                        onValueChange={(value) =>
-                            onUpdateSetting(
-                                SETTINGS_MAP.PREFER_LENGTH,
-                                parseInt(value)
-                            )
-                        }
-                    >
-                        <SelectTrigger>
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="0">Auto</SelectItem>
-                            <SelectItem value="1">Less than 30s</SelectItem>
-                            <SelectItem value="2">30s to 60s</SelectItem>
-                            <SelectItem value="3">60s to 90s</SelectItem>
-                            <SelectItem value="4">90s to 3min</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="w-full">
+                            <button className="w-full border border-gray-300 rounded px-3 py-2 text-left">
+                                {settings?.preferLength &&
+                                settings?.preferLength.length > 0
+                                    ? settings.preferLength
+                                          .map((value) => {
+                                              switch (value) {
+                                                  case 0:
+                                                      return 'Auto';
+                                                  case 1:
+                                                      return 'Less than 30s';
+                                                  case 2:
+                                                      return '30s to 60s';
+                                                  case 3:
+                                                      return '60s to 90s';
+                                                  case 4:
+                                                      return '90s to 3min';
+                                                  default:
+                                                      return '';
+                                              }
+                                          })
+                                          .join(', ')
+                                    : 'Select preferred length'}
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            {[0, 1, 2, 3, 4].map((value) => (
+                                <DropdownMenuCheckboxItem
+                                    key={value}
+                                    checked={settings?.preferLength.includes(
+                                        value
+                                    )}
+                                    onCheckedChange={(isChecked) => {
+                                        const updatedValues = isChecked
+                                            ? [
+                                                  ...(settings?.preferLength ??
+                                                      []),
+                                                  value,
+                                              ]
+                                            : settings?.preferLength.filter(
+                                                  (item) => item !== value
+                                              );
+                                        onUpdateSetting(
+                                            SETTINGS_MAP.PREFER_LENGTH,
+                                            updatedValues
+                                        );
+                                    }}
+                                >
+                                    {value === 0
+                                        ? 'Auto'
+                                        : value === 1
+                                          ? 'Less than 30s'
+                                          : value === 2
+                                            ? '30s to 60s'
+                                            : value === 3
+                                              ? '60s to 90s'
+                                              : value === 4
+                                                ? '90s to 3min'
+                                                : ''}
+                                </DropdownMenuCheckboxItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
                 <div className="space-y-2">
@@ -131,21 +183,6 @@ export default function AdvancedSettings({
                             <SelectItem value="mov">MOV</SelectItem>
                         </SelectContent>
                     </Select>
-                </div>
-
-                <div className="space-y-2">
-                    <Label>Video URL</Label>
-                    <Input
-                        type="url"
-                        value={settings?.videoUrl}
-                        onChange={(e) =>
-                            onUpdateSetting(
-                                SETTINGS_MAP.VIDEO_URL,
-                                e.target.value
-                            )
-                        }
-                        placeholder="https://"
-                    />
                 </div>
 
                 <div className="space-y-2">

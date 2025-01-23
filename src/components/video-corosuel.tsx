@@ -1,20 +1,28 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, X, InfoIcon, ArrowRight, ArrowLeft } from 'lucide-react';
-import { clipType } from '@/types'
+import {
+    ChevronLeft,
+    ChevronRight,
+    X,
+    InfoIcon,
+    ArrowRight,
+    ArrowLeft,
+} from 'lucide-react';
+import { clipType } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
-
 
 const VideoCarousel: React.FC<{ videos: clipType[] }> = ({ videos }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [showMetadata, setShowMetadata] = useState(false);
-    const n = videos.length
+    const n = videos.length;
 
     const currentVideo = videos[currentIndex];
 
-    const nextVideo = () => setCurrentIndex((prev) => (prev + 1) % videos.length);
-    const prevVideo = () => setCurrentIndex((prev) => (prev - 1 + videos.length) % videos.length);
+    const nextVideo = () =>
+        setCurrentIndex((prev) => (prev + 1) % videos.length);
+    const prevVideo = () =>
+        setCurrentIndex((prev) => (prev - 1 + videos.length) % videos.length);
 
     const formatDuration = (ms: number) => {
         const seconds = Math.floor((ms / 1000) % 60);
@@ -24,8 +32,7 @@ const VideoCarousel: React.FC<{ videos: clipType[] }> = ({ videos }) => {
 
     return (
         <div className="relative w-full h-full overflow-hidden bg-black rounded-md p-4">
-
-            <div className='relative h-full'>
+            <div className="relative h-full">
                 {/* Full Screen Video */}
                 <video
                     key={currentVideo.videoId}
@@ -37,16 +44,17 @@ const VideoCarousel: React.FC<{ videos: clipType[] }> = ({ videos }) => {
 
                 {/* Navigation Buttons */}
                 <div className="absolute inset-0 pointer-events-none my-auto ">
-                    {currentIndex > 0 && <motion.button
-                        onClick={prevVideo}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}   
-                        className="absolute left-2 top-1/2  p-2 bg-black/30 rounded-full text-white pointer-events-auto"
-                    >
-                        <ArrowLeft />
-                    </motion.button>
-                    }
-                    {currentIndex < n - 1 &&
+                    {currentIndex > 0 && (
+                        <motion.button
+                            onClick={prevVideo}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            className="absolute left-2 top-1/2  p-2 bg-black/30 rounded-full text-white pointer-events-auto"
+                        >
+                            <ArrowLeft />
+                        </motion.button>
+                    )}
+                    {currentIndex < n - 1 && (
                         <motion.button
                             onClick={nextVideo}
                             whileHover={{ scale: 1.1 }}
@@ -55,7 +63,7 @@ const VideoCarousel: React.FC<{ videos: clipType[] }> = ({ videos }) => {
                         >
                             <ArrowRight />
                         </motion.button>
-                    }
+                    )}
                 </div>
 
                 {/* Metadata Toggle */}
@@ -63,9 +71,12 @@ const VideoCarousel: React.FC<{ videos: clipType[] }> = ({ videos }) => {
                     onClick={() => setShowMetadata(!showMetadata)}
                     className="absolute bottom-4 right-4 bg-white/20 rounded-full p-2 z-50"
                 >
-                    {showMetadata ? <X color="white" /> : <InfoIcon color="white" />}
+                    {showMetadata ? (
+                        <X color="white" />
+                    ) : (
+                        <InfoIcon color="white" />
+                    )}
                 </button>
-
             </div>
             {/* Metadata Slide */}
             <AnimatePresence>
@@ -83,12 +94,22 @@ const VideoCarousel: React.FC<{ videos: clipType[] }> = ({ videos }) => {
                             </h2>
                             <div className="grid grid-cols-2 gap-2 text-sm text-gray-700">
                                 <div className="bg-gray-100 p-3 rounded-xl">
-                                    <p className="text-xs text-gray-500 mb-1">Viral Score</p>
-                                    <p className="font-bold">{currentVideo.viralScore}/10</p>
+                                    <p className="text-xs text-gray-500 mb-1">
+                                        Viral Score
+                                    </p>
+                                    <p className="font-bold">
+                                        {currentVideo.viralScore}/10
+                                    </p>
                                 </div>
                                 <div className="bg-gray-100 p-3 rounded-xl">
-                                    <p className="text-xs text-gray-500 mb-1">Duration</p>
-                                    <p className="font-bold">{formatDuration(currentVideo.videoMsDuration)}</p>
+                                    <p className="text-xs text-gray-500 mb-1">
+                                        Duration
+                                    </p>
+                                    <p className="font-bold">
+                                        {formatDuration(
+                                            currentVideo.videoMsDuration
+                                        )}
+                                    </p>
                                 </div>
                             </div>
                             <p className="text-sm text-gray-600 italic bg-gray-50 p-3 rounded-xl">
@@ -102,10 +123,14 @@ const VideoCarousel: React.FC<{ videos: clipType[] }> = ({ videos }) => {
     );
 };
 
-export default function VideoOutputDisplay({ outputs }: { outputs: clipType[] }) {
-    console.log({ outputs })
+export default function VideoOutputDisplay({
+    outputs,
+}: {
+    outputs: clipType[];
+}) {
+    console.log({ outputs });
 
-    console.log(outputs.length)
+    console.log(outputs.length);
     if (!outputs || outputs.length === 0) {
         return (
             <div className="h-full flex items-center justify-center">

@@ -7,8 +7,10 @@ import { samplePollingResponse } from '@/constants';
 
 export const useMediaProcessing = () => {
     const [projectId, setProjectId] = useState<number | null>(null);
-    const [status, setStatus] = useState<string>(STATUS_MAP.SUCCEEDED);
-    const [output, setOutput] = useState<pollingResponse | null>(samplePollingResponse);
+    const [status, setStatus] = useState<string>(STATUS_MAP.DEFAULT);
+    const [output, setOutput] = useState<pollingResponse | null>(
+        samplePollingResponse
+    );
     const [cloudinaryOriginalUrl, setCloudinaryOriginalUrl] = useState<
         string | null
     >(null);
@@ -16,9 +18,9 @@ export const useMediaProcessing = () => {
     const validateSettings = (settings: SettingsType): string | null => {
         if (!settings.videoUrl) return 'Error: A video URL must be provided.';
         if (!settings.lang) return 'Error: Language selection is required.';
-        if (!settings.preferLength)
-            return 'Error: Please choose a preferred length.';
-        if (!settings.videoType)
+        if (settings.preferLength.length == 0)
+            return 'Error: Please choose at least one preferred length.';
+        if (settings.videoType == undefined || settings.videoType == null)
             return 'Error: A video type must be specified.';
 
         if (!process.env.NEXT_PUBLIC_APP_URL)
@@ -36,6 +38,9 @@ export const useMediaProcessing = () => {
         }
 
         try {
+            console.info('Calling processMedia function with settings : ', {
+                settings,
+            });
             const response: APIResponse =
                 await vizardService.processMedia(settings);
             if (!response.success) {

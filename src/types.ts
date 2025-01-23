@@ -4,7 +4,7 @@ interface BaseVideoSettings {
     video_url: string;
     video_type: number; // 1-5
     lang: string;
-    prefer_length: number; // 0-4
+    prefer_length: number[]; // 0-4
     ext?: string;
     subtitle_switch?: number; // 0-1
     headline_switch?: number; // 0-1
@@ -46,7 +46,7 @@ export interface SettingsType {
     videoUrl: string;
     videoType: number; // 1-5
     lang: string;
-    preferLength: number; // 0-4
+    preferLength: number[]; // 0-4
     ext?: string;
     subtitleSwitch?: number; // 0-1
     headlineSwitch?: number; // 0-1

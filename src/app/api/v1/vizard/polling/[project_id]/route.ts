@@ -78,7 +78,7 @@ export async function GET(
                 logger.error(
                     `Error for project ${project_id}: ${errorMessage}`
                 );
-                return makeResponse(400, false, errorMessage, {
+                return makeResponse(200, false, errorMessage, {
                     status: STATUS_MAP.FAILED,
                     code: data.code,
                 });

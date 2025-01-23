@@ -6,7 +6,6 @@ import MediaUploader from '@/components/media-uploader';
 import RightSideProcess from '@/components/right-side-process';
 import { ImageHistoryModal } from './history-modal';
 import ActionButtons from '@/components/action-buttons';
-import Statistics from '@/components/statistics';
 import AdvancedSettings from '@/components/advanced-settings';
 import {
     Card,
@@ -17,19 +16,18 @@ import {
     TabsList,
     toast,
 } from '@/imports/Shadcn_imports';
-import { Atom, History } from 'lucide-react';
+import { Atom } from 'lucide-react';
 import { useProcess } from '@/hooks/useProcess';
 import { usePollingHandling } from '@/hooks/usePollingHandling';
-import { RETRIES, RETRY_CONFIG, STATUS_MAP } from '@/constants';
+import { SETTINGS_MAP, STATUS_MAP } from '@/constants';
 import { APIResponse, MongoSaveOutput, SettingsType } from '@/types';
-import { WAIT_TIMES, LANGUAGE_MAP, INITIAL_SETTINGS } from '@/constants';
-import { delay, calculateBackoff } from '@/utils/utilFunctions';
-import { databaseService } from '@/services/api';
+import { WAIT_TIMES, INITIAL_SETTINGS } from '@/constants';
+import { delay } from '@/utils/utilFunctions';
 
 export default function ImageTransformer() {
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
     const [uploadCareCdnUrl, setUploadCareCdnUrl] = useState<string | null>(
-        null
+        'https://res.cloudinary.com/cloudinarymohit/video/upload/v1737657302/task_4_AI_Generated_Clips_Original/pqpnylg1sfxqirtvydeh.mp4'
     );
     /* persistent states */
     const cloudinaryUrlRef = useRef<string | null>(null);
@@ -71,7 +69,7 @@ export default function ImageTransformer() {
 
     /* Start processing image */
     const onProcess = async () => {
-        console.log(settings);
+        console.log('SETTINGS : ', settings);
         try {
             if (!uploadCareCdnUrl) {
                 toast.error('Error', {
@@ -97,24 +95,44 @@ export default function ImageTransformer() {
                 settings,
                 setSettings,
                 startProcess,
+                updateSetting,
                 cloudinaryUrlRef,
                 startProcessingMedia,
             };
 
             /* upload the image to cloudinary and start the prediction */
+            console.log('Calling the startProcess');
             const projectId = await startProcess(args);
 
             if (projectId) {
                 setProjectId(projectId);
                 projectIdRef.current = projectId;
-                handlePredictionResults(projectId);
-
                 try {
-                    await saveInputData(projectId, settings);
-                    console.log('Input data saved successfully in database');
+                    if (cloudinaryUrlRef.current) {
+                        updateSetting(
+                            SETTINGS_MAP.VIDEO_URL,
+                            cloudinaryUrlRef.current
+                        );
+                        console.log('Before Inputdata save ', settings);
+                        await saveInputData(
+                            projectId,
+                            settings,
+                            cloudinaryUrlRef.current
+                        );
+                        console.log(
+                            'Input data saved successfully in database'
+                        );
+                    } else {
+                        console.error('Cloudinary URL is not stored anywhere');
+                    }
                 } catch (error) {
                     console.error(`Error while storing input data : ${error}`);
                 }
+                await delay(10000);
+                console.log(
+                    `Calling the polling results function for the first time with ${projectId}`
+                );
+                handlePollingResults(projectId);
             } else {
                 throw new Error('Failed to get prediction ID');
             }
@@ -172,37 +190,34 @@ export default function ImageTransformer() {
         }
     };
 
-    const handlePredictionResults = async (projectId: number) => {
+    const handlePollingResults = async (projectId: number) => {
         while (true) {
             try {
                 console.info(`Project ID : ${projectId}`);
 
                 const pollingData = await pollPredictionStatus(projectId);
-                if (!pollingData.success) {
-                    throw new Error(
-                        `Clips making failed : ${pollingData.message}`
-                    );
-                }
+                console.log({ pollingData });
 
                 if (pollingData.data.code == 2000) {
                     /* handle the success case here */
+                    handleProcessEnd(pollingData);
                     return;
                 } else if (pollingData.data.code == 1000) {
                     // Default case (handles processing and any other status)
                     setStatus(STATUS_MAP.PROCESSING);
-                    await delay(WAIT_TIMES.PREDICTION_SERVICE);
+                    await delay(WAIT_TIMES.POLLING_SERVICE);
                 } else {
                     setStatus(STATUS_MAP.FAILED);
                     toast.error('Error', {
                         description: `Process Failed ${pollingData.message}`,
                         duration: 3000,
                     });
-
-                    /* update the data of project in db as failed */
+                    return;
+                    /* TODO : update the data of project in db as failed */
                 }
             } catch (error) {
                 console.error('Error during prediction polling:', error);
-                await delay(1000);
+                await delay(WAIT_TIMES.POLLING_SERVICE);
             }
         }
     };

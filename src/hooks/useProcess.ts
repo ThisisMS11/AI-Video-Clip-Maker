@@ -1,7 +1,7 @@
 import { STATUS_MAP, MEDIA_TYPE } from '@/constants';
 import { cloudinaryService } from '@/services/api';
 import { SettingsType } from '@/types';
-import { WAIT_TIMES } from '@/constants';
+import { WAIT_TIMES, SETTINGS_MAP } from '@/constants';
 import { RefObject } from 'react';
 
 interface Args {
@@ -10,7 +10,7 @@ interface Args {
     setCloudinaryOriginalUrl: (url: string | null) => void;
     setStatus: (status: string) => void;
     settings: SettingsType;
-    setSettings: (settings: SettingsType) => void;
+    updateSetting: (key: keyof SettingsType, value: string | number) => void;
     startProcessingMedia: (settings: SettingsType) => Promise<string>;
     cloudinaryUrlRef: RefObject<string | null>;
 }
@@ -24,15 +24,17 @@ export const useProcess = () => {
             setCloudinaryOriginalUrl,
             setStatus,
             settings,
-            setSettings,
+            updateSetting,
             startProcessingMedia,
             cloudinaryUrlRef,
         } = args;
 
         /* upload the image to cloudinary if not already uploaded */
-        let uploadedUrl = cloudinaryUrlRef.current;
+        let uploadedUrl =
+            'https://res.cloudinary.com/cloudinarymohit/video/upload/v1737657302/task_4_AI_Generated_Clips_Original/pqpnylg1sfxqirtvydeh.mp4' ||
+            cloudinaryUrlRef.current;
 
-        if (!cloudinaryUrlRef.current) {
+        if (!uploadedUrl) {
             setStatus(STATUS_MAP.UPLOADING);
             try {
                 console.log(`Uploading video to cloudinary`);
@@ -55,7 +57,7 @@ export const useProcess = () => {
                     videoUrl: uploadedUrl as string,
                 };
 
-                setSettings(updatedSettings);
+                updateSetting(SETTINGS_MAP.VIDEO_URL, uploadedUrl);
 
                 /* transform the image */
                 try {
@@ -67,6 +69,7 @@ export const useProcess = () => {
                     );
 
                     // Use updated settings directly instead of relying on state
+                    console.log('calling startProcessingMedia');
                     const projectId =
                         await startProcessingMedia(updatedSettings);
                     if (!projectId) {
@@ -91,8 +94,11 @@ export const useProcess = () => {
                 setStatus(STATUS_MAP.PROCESSING);
                 const updatedSettings: SettingsType = {
                     ...settings,
-                    videoUrl: cloudinaryUrlRef.current,
+                    videoUrl: cloudinaryUrlRef.current || uploadedUrl,
                 };
+                console.log(
+                    'Already uploaded to cloudinary, calling startProcessingMedia'
+                );
                 const projectId = await startProcessingMedia(updatedSettings);
                 if (!projectId) {
                     throw new Error('No project ID returned');

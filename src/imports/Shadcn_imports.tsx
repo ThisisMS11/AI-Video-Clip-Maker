@@ -45,3 +45,12 @@ export { Slider } from '@/components/ui/slider';
 export { Separator } from '@/components/ui/separator';
 export { Switch } from '@/components/ui/switch';
 export { toast } from 'sonner';
+
+export {
+    DropdownMenu,
+    DropdownMenuCheckboxItem,
+    DropdownMenuContent,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
