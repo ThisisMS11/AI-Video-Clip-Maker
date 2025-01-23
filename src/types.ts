@@ -3,7 +3,7 @@ import { STATUS_MAP } from './constants';
 interface BaseVideoSettings {
     video_url: string;
     video_type: number; // 1-5
-    language: string;
+    lang: string;
     prefer_length: number; // 0-4
     ext?: string;
     subtitle_switch?: number; // 0-1
@@ -13,7 +13,7 @@ interface BaseVideoSettings {
     remove_silence_switch?: number; // 0-1
 }
 
-interface BaseOutput {
+export interface BaseOutput {
     video_url: string;
     viral_score?: string;
     transcript?: string;
@@ -28,7 +28,7 @@ export type MongoSaveInput = BaseVideoSettings & {
     project_id: number;
 };
 
-export type MongoSaveOutput = BaseOutput & {
+export type MongoSaveOutput = BaseOutput[] & {
     project_id: number;
 };
 

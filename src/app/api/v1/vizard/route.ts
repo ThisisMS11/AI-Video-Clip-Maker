@@ -18,17 +18,19 @@ function validateRequirements(settings: SettingsType) {
         SETTINGS_MAP.VIDEO_URL,
         SETTINGS_MAP.VIDEO_TYPE,
         SETTINGS_MAP.LANG,
-        SETTINGS_MAP.PREFER_LENGTH
+        SETTINGS_MAP.PREFER_LENGTH,
     ];
 
     /* Checking undefined or null */
-    let inCorrectEntities = requiredFields.filter(field => !settings[field as keyof SettingsType]);
+    let inCorrectEntities = requiredFields.filter(
+        (field) => !settings[field as keyof SettingsType]
+    );
 
     if (inCorrectEntities.length > 0) {
         return {
             validated: false,
             message: 'Missing required fields',
-            inCorrectEntities
+            inCorrectEntities,
         };
     }
 
@@ -39,7 +41,7 @@ function validateRequirements(settings: SettingsType) {
         return {
             validated: false,
             message: 'Invalid video URL format',
-            inCorrectEntities: [SETTINGS_MAP.VIDEO_URL]
+            inCorrectEntities: [SETTINGS_MAP.VIDEO_URL],
         };
     }
 
@@ -48,7 +50,7 @@ function validateRequirements(settings: SettingsType) {
         return {
             validated: false,
             message: 'Invalid video type. Must be between 1-5',
-            inCorrectEntities: [SETTINGS_MAP.VIDEO_TYPE]
+            inCorrectEntities: [SETTINGS_MAP.VIDEO_TYPE],
         };
     }
 
@@ -58,7 +60,7 @@ function validateRequirements(settings: SettingsType) {
         return {
             validated: false,
             message: 'Unsupported language code',
-            inCorrectEntities: [SETTINGS_MAP.LANG]
+            inCorrectEntities: [SETTINGS_MAP.LANG],
         };
     }
 
@@ -67,13 +69,13 @@ function validateRequirements(settings: SettingsType) {
         return {
             validated: false,
             message: 'Invalid prefer length. Must be between 0-4',
-            inCorrectEntities: [SETTINGS_MAP.PREFER_LENGTH]
+            inCorrectEntities: [SETTINGS_MAP.PREFER_LENGTH],
         };
     }
 
     return {
         validated: true,
-        inCorrectEntities: []
+        inCorrectEntities: [],
     };
 }
 
@@ -84,41 +86,44 @@ export async function POST(request: NextRequest) {
         // Validate settings object
         if (!settings || typeof settings !== 'object') {
             logger.warn('Invalid settings object');
-            return makeResponse(400, false, 'Invalid settings provided', null)
+            return makeResponse(400, false, 'Invalid settings provided', null);
         }
 
         logger.info(`Validating Required Fields`);
-        const { validated, message, inCorrectEntities } = validateRequirements(settings);
+        const { validated, message, inCorrectEntities } =
+            validateRequirements(settings);
 
         if (!validated) {
             logger.warn(`${message} : ${inCorrectEntities.join(', ')}`);
             return makeResponse(400, false, message, inCorrectEntities);
         }
 
-
         logger.info(
             `Starting the process of creating clips for ${JSON.stringify(settings)}`
         );
 
-        const response = await fetch('https://elb-api.vizard.ai/hvizard-server-front/open-api/v1/project/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'VIZARDAI_API_KEY': process.env.VIZARDAI_API_KEY as string
-            },
-            body: JSON.stringify(settings)
-        });
+        const response = await fetch(
+            'https://elb-api.vizard.ai/hvizard-server-front/open-api/v1/project/create',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    VIZARDAI_API_KEY: process.env.VIZARDAI_API_KEY as string,
+                },
+                body: JSON.stringify(settings),
+            }
+        );
 
         if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}`);
+            throw new Error(
+                `API request failed with status ${response.status}`
+            );
         }
 
         const data = await response.json();
 
-        logger.info(
-            `API Called response : ${JSON.stringify(data)}`
-        );
-        return makeResponse(200, true, 'Clips making initiated', data)
+        logger.info(`API Called response : ${JSON.stringify(data)}`);
+        return makeResponse(200, true, 'Clips making initiated', data);
     } catch (error) {
         if (error instanceof Error) {
             logger.error(

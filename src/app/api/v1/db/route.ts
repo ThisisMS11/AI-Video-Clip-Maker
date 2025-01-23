@@ -1,174 +1,20 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createLoggerWithLabel } from '../../utils/logger';
+import { MongoFetchResult } from '@/types';
 import { currentUser } from '@clerk/nextjs/server';
-import clientPromise from '@/app/api/utils/mongoClient';
-import { MongoSaveInput } from '@/types';
-import { STATUS_MAP } from '@/constants';
-const logger = createLoggerWithLabel('DB');
+import { NextResponse } from 'next/server';
+import clientPromise from '../../utils/mongoClient';
+import { createLoggerWithLabel } from '../../utils/logger';
+import { makeResponse } from '../../utils/makeResponse';
 
-export async function POST(request: NextRequest) {
-    try {
-        logger.info('Starting to process image information storage request');
+const logger = createLoggerWithLabel('DB_FETCH_HISTORY');
 
-        // Validate request body exists
-        if (!request.body) {
-            logger.warn('Empty request body');
-            return NextResponse.json(
-                { error: 'Request body is required' },
-                { status: 400 }
-            );
-        }
-
-        let body: ;
-        try {
-            body = await request.json();
-        } catch (e) {
-            logger.warn(`Invalid JSON in request body ${JSON.stringify(e)}`);
-            return NextResponse.json(
-                { error: 'Invalid JSON in request body' },
-                { status: 400 }
-            );
-        }
-
-        const {
-            status,
-            image_url,
-            output_url,
-            target_age,
-            created_at,
-            completed_at,
-            predict_time,
-        }: MongoSave = body;
-
-        // Validate required fields
-        const requiredFields = {
-            image_url,
-            status,
-            predict_time,
-            ...(status === STATUS_MAP.succeeded && {
-                output_url,
-            }),
-        };
-
-        const missingFields = Object.entries(requiredFields)
-            .filter(([_, value]) => !value)
-            .map(([key]) => key);
-
-        if (missingFields.length > 0) {
-            logger.warn(`Missing required fields: ${missingFields.join(', ')}`);
-            return NextResponse.json(
-                {
-                    error: 'Missing required fields',
-                    missingFields,
-                },
-                { status: 400 }
-            );
-        }
-
-        // Validate field types and formats
-        if (typeof image_url !== 'string' || !image_url.startsWith('http')) {
-            logger.warn('Invalid image_url format');
-            return NextResponse.json(
-                { error: 'Invalid image_url format' },
-                { status: 400 }
-            );
-        }
-
-        const validStatuses = ['succeeded', 'failed'];
-        if (!validStatuses.includes(status)) {
-            logger.warn(`Invalid status: ${status}`);
-            return NextResponse.json(
-                { error: 'Invalid status value' },
-                { status: 400 }
-            );
-        }
-
-        const user = await currentUser();
-        if (!user) {
-            logger.warn('User not authenticated');
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
-        }
-
-        const user_id = user.id;
-        logger.info(`Processing DB save request for user: ${user_id}`);
-
-        let client;
-        try {
-            client = await clientPromise;
-        } catch (error) {
-            logger.error(`MongoDB connection error: ${error}`);
-            return NextResponse.json(
-                { error: 'Database connection failed' },
-                { status: 503 }
-            );
-        }
-
-        // Ensure environment variables are defined
-        if (!process.env.DB_NAME || !process.env.COLLECTION_NAME) {
-            logger.error('Database configuration missing');
-            throw new Error('Database or collection name not configured');
-        }
-
-        const db = client.db(process.env.DB_NAME);
-        const collection = db.collection(process.env.COLLECTION_NAME);
-
-        const document = {
-            user_id,
-            image_url,
-            output_url,
-            target_age,
-            status,
-            predict_time,
-            updated_at: new Date(),
-            created_at: new Date(created_at),
-            completed_at: completed_at ? new Date(completed_at) : null,
-        };
-
-        const result = await collection.insertOne(document);
-
-        if (!result.acknowledged) {
-            logger.error('Failed to insert document into MongoDB');
-            return NextResponse.json(
-                { error: 'Database operation failed' },
-                { status: 500 }
-            );
-        }
-
-        logger.info(
-            `Successfully stored image process with id: ${result.insertedId}`
-        );
-        return NextResponse.json({
-            success: true,
-            id: result.insertedId,
-            message: 'Image process stored successfully',
-        });
-    } catch (error) {
-        logger.error(`Error storing image process: ${error}`);
-        return NextResponse.json(
-            {
-                error: 'Internal server error',
-                message: 'Failed to store image information',
-            },
-            { status: 500 }
-        );
-    }
-}
-
-/* to get the information of all the image processes of a user */
 export async function GET() {
     try {
-        logger.info('Starting to process image information retrieval request');
+        logger.info('Starting to process information retrieval request');
 
         const user = await currentUser();
         if (!user) {
             logger.warn('User not authenticated');
-            return NextResponse.json(
-                { error: 'Unauthorized' },
-                { status: 401 }
-            );
+            return makeResponse(401, false, 'Unauthorized', null);
         }
 
         const user_id = user.id;
@@ -179,52 +25,128 @@ export async function GET() {
             client = await clientPromise;
         } catch (error) {
             logger.error(`MongoDB connection error: ${error}`);
-            return NextResponse.json(
-                { error: 'Database connection failed' },
-                { status: 503 }
-            );
+            return makeResponse(503, false, 'Database connection failed', null);
         }
 
         // Ensure environment variables are defined
-        if (!process.env.DB_NAME || !process.env.COLLECTION_NAME) {
+        if (
+            !process.env.DB_NAME ||
+            !process.env.PROJECTS_COLLECTION ||
+            !process.env.OUTPUTS_COLLECTION
+        ) {
             logger.error('Database configuration missing');
-            throw new Error('Database or collection name not configured');
+            return makeResponse(
+                500,
+                false,
+                'Database configuration missing',
+                null
+            );
         }
 
         const db = client.db(process.env.DB_NAME);
-        const collection = db.collection(process.env.COLLECTION_NAME);
 
+        // Using MongoDB aggregation pipeline to join collections
+        const pipeline = [
+            // Match documents for the current user
+            {
+                $match: { user_id },
+            },
+            // Sort by creation date
+            {
+                $sort: { created_at: -1 },
+            },
+            // Limit to 100 documents
+            {
+                $limit: 100,
+            },
+            // Lookup outputs from the outputs collection
+            {
+                $lookup: {
+                    from: process.env.OUTPUTS_COLLECTION,
+                    localField: 'project_id',
+                    foreignField: 'project_id',
+                    as: 'output',
+                },
+            },
+            // Project the fields we want to return
+            {
+                $project: {
+                    _id: 1,
+                    project_name: 1,
+                    project_id: 1,
+                    status: 1,
+                    settings: 1,
+                    output: {
+                        $map: {
+                            input: '$output',
+                            as: 'output',
+                            in: {
+                                video_url: '$$output.video_url',
+                                viral_score: '$$output.viral_score',
+                                transcript: '$$output.transcript',
+                                video_ms_duration: '$$output.video_ms_duration',
+                                video_id: '$$output.video_id',
+                                title: '$$output.title',
+                                viral_reason: '$$output.viral_reason',
+                            },
+                        },
+                    },
+                },
+            },
+        ];
+
+        const collection = db.collection(process.env.PROJECTS_COLLECTION);
         const documents = await collection
-            .find({ user_id })
-            .sort({ created_at: -1 })
-            .limit(100)
+            .aggregate<MongoFetchResult>(pipeline)
             .toArray();
 
         if (!documents || documents.length === 0) {
             logger.info(`No documents found for user: ${user_id}`);
-            return NextResponse.json({
-                success: true,
-                data: [],
-                message: 'No image processes found',
-            });
+            return makeResponse(200, true, 'No processes found', []);
         }
 
-        logger.info(
-            `Retrieved ${documents.length} documents for user: ${user_id}`
-        );
-        return NextResponse.json({
-            success: true,
-            data: documents,
-            message: 'Image processes retrieved successfully',
-        });
-    } catch (error) {
-        logger.error(`Error retrieving image processes: ${error}`);
-        return NextResponse.json(
-            {
-                error: 'Internal server error',
-                message: 'Failed to retrieve image information',
+        // Sanitize the documents
+        const sanitizedDocuments = documents.map((doc) => ({
+            _id: doc._id,
+            project_name: doc.project_name || '',
+            project_id: doc.project_id,
+            status: doc.status,
+            settings: {
+                video_url: doc.settings?.video_url || '',
+                video_type: doc.settings?.video_type || 1,
+                lang: doc.settings?.lang || 'en',
+                prefer_length: doc.settings?.prefer_length || 0,
+                ext: doc.settings?.ext,
+                subtitle_switch: doc.settings?.subtitle_switch,
+                headline_switch: doc.settings?.headline_switch,
+                max_clip_number: doc.settings?.max_clip_number,
+                keywords: doc.settings?.keywords,
+                remove_silence_switch: doc.settings?.remove_silence_switch,
             },
-            { status: 500 }
+            output: Array.isArray(doc.output)
+                ? doc.output.map((output) => ({
+                      video_url: output.video_url,
+                      viral_score: output.viral_score,
+                      transcript: output.transcript,
+                      video_ms_duration: output.video_ms_duration,
+                      video_id: output.video_id,
+                      title: output.title,
+                      viral_reason: output.viral_reason,
+                  }))
+                : [],
+        }));
+
+        logger.info(
+            `Retrieved and sanitized ${sanitizedDocuments.length} documents for user: ${user_id}`
         );
+        return makeResponse(
+            200,
+            true,
+            'Processes retrieved successfully',
+            sanitizedDocuments
+        );
+    } catch (error) {
+        logger.error(`Error retrieving processes: ${error}`);
+        return makeResponse(500, false, 'Failed to retrieve information', null);
     }
 }
