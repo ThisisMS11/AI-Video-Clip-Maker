@@ -7,13 +7,13 @@ import '@uploadcare/react-uploader/core.css';
 interface VideoUploaderProps {
     uploadCareCdnUrl: string | null;
     onUploadSuccess: (url: string) => void;
-    onRemoveVideo: () => void;
+    onRemoveMedia: () => void;
 }
 
 export default function VideoUploader({
     uploadCareCdnUrl,
     onUploadSuccess,
-    onRemoveVideo,
+    onRemoveMedia,
 }: VideoUploaderProps) {
     return (
         <div className="space-y-1 h-[44%]">
@@ -46,7 +46,7 @@ export default function VideoUploader({
                             <Button
                                 variant="destructive"
                                 size="sm"
-                                onClick={onRemoveVideo}
+                                onClick={onRemoveMedia}
                                 className="flex items-center gap-2 w-full"
                             >
                                 <Trash2 className="w-4 h-4" />

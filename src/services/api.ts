@@ -47,6 +47,18 @@ export const databaseService = {
         }
     },
 
+    updateStatus: async (project_id: number, status: string) => {
+        try {
+            const data = await fetchClient<APIResponse>('db/vizard-input', {
+                method: 'POST',
+                body: JSON.stringify({ project_id, status }),
+            });
+            return data;
+        } catch (error) {
+            throw error;
+        }
+    },
+
     fetchHistory: async () => {
         try {
             const data = await fetchClient<APIResponse>('db', {

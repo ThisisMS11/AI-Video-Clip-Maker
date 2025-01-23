@@ -12,7 +12,7 @@ import {
 } from '@/services/api';
 import { STATUS_MAP } from '@/constants';
 
-export const usePredictionHandling = () => {
+export const usePollingHandling = () => {
     /* Get prediction data from redis */
     const pollPredictionStatus = async (project_id: number) => {
         try {
@@ -21,7 +21,7 @@ export const usePredictionHandling = () => {
             if (!response.success) {
                 throw new Error(response.message);
             }
-            return response.data as pollingResponse;
+            return response;
         } catch (error) {
             console.error('Polling error:', error);
             throw error;
@@ -29,9 +29,10 @@ export const usePredictionHandling = () => {
     };
 
     /* Handle Prediction Success : upload replicate output to cloudinary and save to database */
-    const saveInputData = async (data: SettingsType) => {
+    const saveInputData = async (project_id: number, data: SettingsType) => {
         try {
             const settings = {
+                project_id,
                 status: STATUS_MAP.PROCESSING,
                 video_url: data.videoUrl,
                 video_type: data.videoType,
@@ -50,9 +51,9 @@ export const usePredictionHandling = () => {
             if (!response.success) {
                 throw new Error(response.message);
             }
-            return response.data;
+            return response;
         } catch (error) {
-            console.error('Error in handlePredictionSuccess:', error);
+            console.error('Error in saving input data :', error);
             throw error;
         }
     };
@@ -66,9 +67,27 @@ export const usePredictionHandling = () => {
             if (!response.success) {
                 throw new Error(response.message);
             }
-            return response.data;
+            return response;
         } catch (error) {
-            console.error('Error in handlePredictionFailed:', error);
+            console.error('Error in saving output data:', error);
+            throw error;
+        }
+    };
+
+    /* update the status of a project in db */
+    const updateStatus = async (project_id: number, status: string) => {
+        try {
+            /* Saving output data to mongoDB */
+            const response: APIResponse = await databaseService.updateStatus(
+                project_id,
+                status
+            );
+            if (!response.success) {
+                throw new Error(response.message);
+            }
+            return response;
+        } catch (error) {
+            console.error('Error in updating status:', error);
             throw error;
         }
     };
@@ -77,5 +96,6 @@ export const usePredictionHandling = () => {
         pollPredictionStatus,
         saveInputData,
         saveOutputData,
+        updateStatus,
     };
 };

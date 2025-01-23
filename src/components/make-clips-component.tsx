@@ -16,33 +16,36 @@ import {
     TabsTrigger,
     TabsList,
     toast,
-    Label,
-    Input,
-    Button,
 } from '@/imports/Shadcn_imports';
 import { Atom, History } from 'lucide-react';
 import { useProcess } from '@/hooks/useProcess';
-import { usePredictionHandling } from '@/hooks/usePredictionHandling';
+import { usePollingHandling } from '@/hooks/usePollingHandling';
 import { RETRIES, RETRY_CONFIG, STATUS_MAP } from '@/constants';
-import { SettingsType } from '@/types';
-import { WAIT_TIMES, LANGUAGE_MAP } from '@/constants';
+import { APIResponse, MongoSaveOutput, SettingsType } from '@/types';
+import { WAIT_TIMES, LANGUAGE_MAP, INITIAL_SETTINGS } from '@/constants';
 import { delay, calculateBackoff } from '@/utils/utilFunctions';
+import { databaseService } from '@/services/api';
 
 export default function ImageTransformer() {
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
     const [uploadCareCdnUrl, setUploadCareCdnUrl] = useState<string | null>(
         null
     );
-
-    const [hasFailed, setHasFailed] = useState(false);
-    const { settings, setSettings, updateSetting } = useMediaSettings();
-
     /* persistent states */
     const cloudinaryUrlRef = useRef<string | null>(null);
-    const isRetryingRef = useRef(false);
     const projectIdRef = useRef<number | null>(null);
 
     /* Custom Hooks */
+    const { settings, setSettings, updateSetting } = useMediaSettings();
+
+    const {
+        pollPredictionStatus,
+        saveInputData,
+        saveOutputData,
+        updateStatus,
+    } = usePollingHandling();
+
+    const { startProcess } = useProcess();
 
     const {
         status,
@@ -55,26 +58,20 @@ export default function ImageTransformer() {
         startProcessingMedia,
     } = useMediaProcessing();
 
-    const { pollPredictionStatus, savePredictionData } =
-        usePredictionHandling();
-    const { handleProcessingImage } = useProcess();
-
     /* To remove the image from the state */
-    const handleRemoveImage = () => {
+    const onRemoveMedia = () => {
         setOutput(null);
         setProjectId(null);
         setStatus(STATUS_MAP.DEFAULT);
         setUploadCareCdnUrl(null);
         setCloudinaryOriginalUrl(null);
         cloudinaryUrlRef.current = null;
-        retryAttemptsRef.current = 0;
-        isRetryingRef.current = false;
-        setIsRetrying(false);
-        setSettings(null);
+        setSettings(INITIAL_SETTINGS);
     };
 
     /* Start processing image */
-    const startProcessingImage = async () => {
+    const onProcess = async () => {
+        console.log(settings);
         try {
             if (!uploadCareCdnUrl) {
                 toast.error('Error', {
@@ -84,13 +81,9 @@ export default function ImageTransformer() {
                 return;
             }
 
-            if (
-                settings.target_age !== 'default' &&
-                (Number(settings.target_age) > 300 ||
-                    Number(settings.target_age) < 0)
-            ) {
+            if (settings.videoType === 1 && settings.ext === '') {
                 toast.error('Error', {
-                    description: 'Please enter valid age (below <=300)',
+                    description: 'If videoType is 1, ext needs to be set.',
                     duration: 3000,
                 });
                 return;
@@ -103,24 +96,32 @@ export default function ImageTransformer() {
                 setStatus,
                 settings,
                 setSettings,
-                startTransformingImage,
+                startProcess,
                 cloudinaryUrlRef,
+                startProcessingMedia,
             };
 
             /* upload the image to cloudinary and start the prediction */
-            const projectId = await handleProcessingImage(args);
+            const projectId = await startProcess(args);
 
             if (projectId) {
                 setProjectId(projectId);
                 projectIdRef.current = projectId;
                 handlePredictionResults(projectId);
+
+                try {
+                    await saveInputData(projectId, settings);
+                    console.log('Input data saved successfully in database');
+                } catch (error) {
+                    console.error(`Error while storing input data : ${error}`);
+                }
             } else {
                 throw new Error('Failed to get prediction ID');
             }
         } catch (error) {
-            console.error('Error in startProcessingImage:', error);
+            console.error('Error in startProcess:', error);
             toast.error('Error', {
-                description: `Error in startProcessingImage`,
+                description: `Error in startProcess`,
                 duration: 3000,
             });
             setStatus(STATUS_MAP.ERROR);
@@ -128,188 +129,146 @@ export default function ImageTransformer() {
     };
 
     /* handle prediction success */
-    const handlePredictionFinalResult = async (
-        data: PredictionResponse,
-        outputUrl?: string
-    ) => {
-        const isSuccess = data.status === STATUS_MAP.SUCCEEDED;
-        await savePredictionData(data, outputUrl);
+    const handleProcessEnd = async (finalData: APIResponse) => {
+        const isSuccess = finalData?.data?.status === STATUS_MAP.SUCCEEDED;
+        const project_id = projectIdRef.current as number;
         setStatus(isSuccess ? STATUS_MAP.SUCCEEDED : STATUS_MAP.FAILED);
-        setFinalResponse(data);
-        setOutput(outputUrl ? outputUrl : null);
 
-        if (isSuccess) {
-            toast.success('Image Transformed Successfully', {
-                description: 'Image Transformed Successfully',
-                duration: 3000,
-            });
-        } else {
-            toast.error('Failed to transform the image', {
-                description: 'Please try again',
-                duration: 3000,
-            });
+        try {
+            if (isSuccess) {
+                const input: MongoSaveOutput = {
+                    project_id,
+                    outputs: finalData?.data?.videos || [],
+                };
+
+                /* Saving clips information to Database */
+                try {
+                    await saveOutputData(input);
+                    console.log('Clips Saved into database');
+                    toast.success('Enjoy Your clips', {
+                        description: 'Process completed Successfully',
+                        duration: 3000,
+                    });
+                } catch (error) {
+                    console.error(`Database save operation failed: ${error}`);
+                }
+            } else {
+                try {
+                    await updateStatus(project_id, STATUS_MAP.FAILED);
+                    console.info(
+                        `Project ${project_id} status updated to ${STATUS_MAP.FAILED}`
+                    );
+                } catch (error) {
+                    console.error(`Status update operation failed: ${error}`);
+                }
+
+                toast.error('Failed', {
+                    description: 'Process Failed! Please try again',
+                    duration: 3000,
+                });
+            }
+        } catch (error) {
+            console.error(`Unexpected error during process handling: ${error}`);
         }
     };
 
-    // const handlePredictionResults = async (projectId: string) => {
-    while (true && !hasFailed) {
-        if (isRetryingRef.current) {
-            // console.log('Retry already in progress, skipping...');
-            await delay(5000);
-            continue;
-        }
+    const handlePredictionResults = async (projectId: number) => {
+        while (true) {
+            try {
+                console.info(`Project ID : ${projectId}`);
 
-        try {
-            console.info(`Prediction ID : ${projectId}`);
-
-            const predictionData = await pollPredictionStatus(projectId);
-
-            if (!predictionData) {
-                throw new Error('No prediction data received');
-            }
-
-            const outputUrl = predictionData.output_url
-                ? JSON.parse(predictionData.output_url)
-                : null;
-
-            if (predictionData.status === STATUS_MAP.SUCCEEDED) {
-                // Reset retry attempts on success
-                retryAttemptsRef.current = 0;
-                isRetryingRef.current = false;
-                setIsRetrying(false);
-                await handlePredictionFinalResult(predictionData, outputUrl);
-                return;
-            } else if (predictionData.status === STATUS_MAP.FAILED) {
-                if (
-                    retryAttemptsRef.current < RETRY_CONFIG.MAX_RETRIES &&
-                    !isRetryingRef.current
-                ) {
-                    isRetryingRef.current = true;
-                    setIsRetrying(true);
-                    retryAttemptsRef.current += 1;
-
-                    console.log(
-                        `Initiating retry ${retryAttemptsRef.current}/${RETRY_CONFIG.MAX_RETRIES}`
+                const pollingData = await pollPredictionStatus(projectId);
+                if (!pollingData.success) {
+                    throw new Error(
+                        `Clips making failed : ${pollingData.message}`
                     );
-                    setStatus(STATUS_MAP.PROCESSING);
-
-                    const backoffDelay = calculateBackoff(
-                        retryAttemptsRef.current - 1
-                    );
-                    // console.log({ backoffDelay });
-                    await delay(backoffDelay);
-
-                    // Use existing cloudinary URL
-                    if (cloudinaryUrlRef.current) {
-                        const updatedSettings = {
-                            ...settings,
-                            image_url: cloudinaryUrlRef.current,
-                        };
-                        setSettings(updatedSettings);
-                    }
-
-                    await startProcessingImage();
-
-                    /* this is to let replicate start processing the image again */
-                    await delay(10000);
-
-                    // console.log('I am still not printed');
-                    isRetryingRef.current = false;
-                    setIsRetrying(false);
-                } else {
-                    console.log(
-                        `Failed after ${retryAttemptsRef.current} retries or retry in progress`
-                    );
-                    // Reset for future attempts
-                    isRetryingRef.current = false;
-                    setIsRetrying(false);
-                    setHasFailed(true);
-                    await handlePredictionFinalResult(predictionData);
-                    return;
                 }
-            } else {
-                // Default case (handles processing and any other status)
-                setStatus(STATUS_MAP.PROCESSING);
-                await delay(WAIT_TIMES.PREDICTION_SERVICE);
+
+                if (pollingData.data.code == 2000) {
+                    /* handle the success case here */
+                    return;
+                } else if (pollingData.data.code == 1000) {
+                    // Default case (handles processing and any other status)
+                    setStatus(STATUS_MAP.PROCESSING);
+                    await delay(WAIT_TIMES.PREDICTION_SERVICE);
+                } else {
+                    setStatus(STATUS_MAP.FAILED);
+                    toast.error('Error', {
+                        description: `Process Failed ${pollingData.message}`,
+                        duration: 3000,
+                    });
+
+                    /* update the data of project in db as failed */
+                }
+            } catch (error) {
+                console.error('Error during prediction polling:', error);
+                await delay(1000);
             }
-        } catch (error) {
-            console.error('Error during prediction polling:', error);
-            await delay(1000);
         }
-    }
-}
+    };
 
-return (
-    <div className="flex flex-col h-full rounded-sm p-2 lg:w-[80%] w-[90%] items-center">
-        <div className="w-full h-full">
-            <Tabs defaultValue="text" className="mb-1 h-[4%] w-full">
-                <TabsList className="grid w-full grid-cols-1">
-                    <TabsTrigger value="text" className="flex gap-2">
-                        <Atom className="w-4 h-4" />
-                        AI Age Transformation
-                    </TabsTrigger>
-                </TabsList>
-            </Tabs>
+    return (
+        <div className="flex flex-col h-full rounded-sm p-2 lg:w-[80%] w-[90%] items-center">
+            <div className="w-full h-full">
+                <Tabs defaultValue="text" className="mb-1 h-[4%] w-full">
+                    <TabsList className="grid w-full grid-cols-1">
+                        <TabsTrigger value="text" className="flex gap-2">
+                            <Atom className="w-4 h-4" />
+                            AI Generated Clips
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
 
-            <div className="flex w-full lg:h-[93%] mt-4 gap-2 flex-col lg:flex-row ">
-                {/* Left Side */}
-                <div className="flex-1 p-1 border-r lg:w-[35%] h-full ">
-                    <Card className="h-full">
-                        <CardContent className="p-2  h-full">
-                            <MediaUploader
-                                uploadCareCdnUrl={uploadCareCdnUrl}
-                                onUploadSuccess={setUploadCareCdnUrl}
-                                onRemoveImage={handleRemoveImage}
-                            />
+                <div className="flex w-full lg:h-[93%] mt-4 gap-2 flex-col lg:flex-row ">
+                    {/* Left Side */}
+                    <div className="flex-1 p-1 border-r lg:w-[35%] h-full ">
+                        <Card className="h-full">
+                            <CardContent className="p-2  h-full">
+                                <MediaUploader
+                                    uploadCareCdnUrl={uploadCareCdnUrl}
+                                    onUploadSuccess={setUploadCareCdnUrl}
+                                    onRemoveMedia={onRemoveMedia}
+                                />
 
-                            <Separator className="my-2" />
+                                <Separator className="my-2" />
 
-                            {/* Enter the target age  */}
-                            <AdvancedSettings
-                                settings={settings}
-                                onUpdateSetting={handleSettingsUpdate}
-                                onMaskUpload={() => {}}
-                                uploadMaskKey={0}
-                            />
+                                {/* Settings  */}
+                                <AdvancedSettings
+                                    settings={settings}
+                                    onUpdateSetting={updateSetting}
+                                />
 
-                            <Separator className="my-2" />
+                                <Separator className="my-2" />
 
-                            {/* <ActionButtons
+                                <ActionButtons
                                     status={status}
-                                    onProcess={startProcessingImage}
+                                    onProcess={onProcess}
                                     onHistory={() => setHistoryModalOpen(true)}
-                                /> */}
+                                />
+                            </CardContent>
+                        </Card>
+                    </div>
 
-                            <Button
-                                className="flex-1 rounded-lg"
-                                onClick={() => setHistoryModalOpen(true)}
-                            >
-                                <History className="w-4 h-4 mr-2" />
-                                View History
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                {/* Right Side */}
-                {/* <div className="flex flex-col lg:w-[65%] h-full lg:border-none lg:rounded-md mt-14 lg:mt-0 w-[95%]  mx-auto">
+                    {/* Right Side */}
+                    <div className="flex flex-col lg:w-[65%] h-full lg:border-none lg:rounded-md mt-14 lg:mt-0 w-[95%]  mx-auto">
                         <RightSideProcess
                             status={status}
-                            transformedGIFUrl={output}
-                            onRetry={startProcessingImage}
+                            output={output}
+                            onRetry={onProcess}
                         />
 
                         {(status === STATUS_MAP.SUCCEEDED ||
                             status === STATUS_MAP.FAILED) && (
-                            <Statistics data={finalResponse} />
+                            <Statistics data={output} />
                         )}
-                    </div> */}
-            </div>
+                    </div>
+                </div>
 
-            <ImageHistoryModal
-                open={historyModalOpen}
-                onOpenChange={setHistoryModalOpen}
-            />
+                <ImageHistoryModal
+                    open={historyModalOpen}
+                    onOpenChange={setHistoryModalOpen}
+                />
+            </div>
         </div>
-    </div>
-);
+    );
+}

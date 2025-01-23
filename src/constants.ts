@@ -183,3 +183,17 @@ export const sampleHistoryOutput = [
         ],
     },
 ];
+
+export const INITIAL_SETTINGS = {
+    videoUrl: '',
+    videoType: 1,
+    lang: LANGUAGE_MAP['English'],
+    preferLength: 0,
+    ext: '',
+    maxClipNumber: 5,
+    keywords: '',
+    projectName: '',
+    subtitleSwitch: 1,
+    headlineSwitch: 1,
+    removeSilenceSwitch: 1,
+};

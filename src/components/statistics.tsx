@@ -9,13 +9,13 @@ import {
     Link2,
     Settings,
 } from 'lucide-react';
-import { PredictionResponse } from '@/types';
+import { pollingResponse } from '@/types';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { STATUS_MAP } from '@/constants';
 import { toast } from 'sonner';
 
-const Statistics = ({ data }: { data: PredictionResponse | null }) => {
+const Statistics = ({ data }: { data: pollingResponse | null }) => {
     if (!data) {
         return (
             <div className="px-2 h-[40%] space-y-3 mt-4 lg:mt-0">

@@ -64,7 +64,7 @@ export interface ImageTransformationHistoryModalProps {
 }
 
 export interface pollingResponse {
-    code: string;
+    code: number;
     projectId?: number;
     videos?: {
         viralScore: string;

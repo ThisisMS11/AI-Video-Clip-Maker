@@ -72,7 +72,7 @@ export const useProcess = () => {
                     if (!projectId) {
                         throw new Error('No project ID returned');
                     }
-                    return projectId;
+                    return Number(projectId);
                 } catch (error) {
                     throw error;
                 }
@@ -97,7 +97,7 @@ export const useProcess = () => {
                 if (!projectId) {
                     throw new Error('No project ID returned');
                 }
-                return projectId;
+                return Number(projectId);
             } catch (error) {
                 console.error('Error Creating Clips:', error);
                 throw error;

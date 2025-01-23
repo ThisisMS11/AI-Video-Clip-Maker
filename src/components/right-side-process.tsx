@@ -2,16 +2,17 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Upload, Wand2, XCircle, RefreshCcw } from 'lucide-react';
 import { STATUS_MAP } from '@/constants';
+import { pollingResponse } from '@/types';
 
 interface VideoPreviewProps {
     status: string;
-    transformedGIFUrl: string | null;
+    output: pollingResponse | null;
     onRetry: () => void;
 }
 
 export default function RightSideProcess({
     status,
-    transformedGIFUrl,
+    output,
     onRetry,
 }: VideoPreviewProps) {
     switch (status) {
@@ -42,18 +43,19 @@ export default function RightSideProcess({
         case STATUS_MAP.SUCCEEDED:
             return (
                 <div className="h-[60%]">
-                    {transformedGIFUrl ? (
+                    {output ? (
                         <div className="relative w-full h-full bg-muted rounded-lg">
-                            <img
+                            {/* <img
                                 src={transformedGIFUrl}
                                 alt="Transformed GIF"
                                 className="rounded-lg h-full w-full object-contain"
-                            />
+                            /> */}
+                            We have got some output to display ! Chill bro.
                         </div>
                     ) : (
                         <div className="h-full flex items-center justify-center">
                             <p className="text-muted-foreground">
-                                No GIF found
+                                No Output found
                             </p>
                         </div>
                     )}

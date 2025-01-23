@@ -1,5 +1,4 @@
 import { SettingsType } from '@/types';
-import { FileUploaderMinimal } from '@uploadcare/react-uploader';
 import '@uploadcare/react-uploader/core.css';
 import {
     Select,
@@ -9,7 +8,6 @@ import {
     SelectItem,
     Label,
     Input,
-    Button,
     Switch,
 } from '@/imports/Shadcn_imports';
 import { SETTINGS_MAP, LANGUAGE_MAP } from '@/constants';
@@ -17,21 +15,31 @@ import { SETTINGS_MAP, LANGUAGE_MAP } from '@/constants';
 interface AdvancedSettingsProps {
     settings: SettingsType | null;
     onUpdateSetting: (key: keyof SettingsType, value: any) => void;
-    onMaskUpload: (info: any) => void;
-    uploadMaskKey: number;
 }
 
 export default function AdvancedSettings({
     settings,
     onUpdateSetting,
-    onMaskUpload,
-    uploadMaskKey,
 }: AdvancedSettingsProps) {
     return (
         <div className="space-y-4 w-full h-[42%] p-5 overflow-y-auto">
             <h3 className="text-lg font-medium">Advanced Settings</h3>
 
             <div className="space-y-3">
+                <div className="space-y-2">
+                    <Label>Project Name (Optional)</Label>
+                    <Input
+                        value={settings?.projectName}
+                        onChange={(e) =>
+                            onUpdateSetting(
+                                SETTINGS_MAP.PROJECT_NAME,
+                                e.target.value
+                            )
+                        }
+                        placeholder="Enter project name"
+                    />
+                </div>
+
                 <div className="space-y-2">
                     <Label>Language</Label>
 
@@ -105,27 +113,25 @@ export default function AdvancedSettings({
                     </Select>
                 </div>
 
-                {settings?.videoType === 1 && (
-                    <div className="space-y-2">
-                        <Label>File Extension</Label>
-                        <Select
-                            value={settings?.ext}
-                            onValueChange={(value) =>
-                                onUpdateSetting(SETTINGS_MAP.EXT, value)
-                            }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="mp4">MP4</SelectItem>
-                                <SelectItem value="3gp">3GP</SelectItem>
-                                <SelectItem value="avi">AVI</SelectItem>
-                                <SelectItem value="mov">MOV</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                )}
+                <div className="space-y-2">
+                    <Label>File Extension</Label>
+                    <Select
+                        value={settings?.ext}
+                        onValueChange={(value) =>
+                            onUpdateSetting(SETTINGS_MAP.EXT, value)
+                        }
+                    >
+                        <SelectTrigger>
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="mp4">MP4</SelectItem>
+                            <SelectItem value="3gp">3GP</SelectItem>
+                            <SelectItem value="avi">AVI</SelectItem>
+                            <SelectItem value="mov">MOV</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
 
                 <div className="space-y-2">
                     <Label>Video URL</Label>
@@ -139,20 +145,6 @@ export default function AdvancedSettings({
                             )
                         }
                         placeholder="https://"
-                    />
-                </div>
-
-                <div className="space-y-2">
-                    <Label>Project Name (Optional)</Label>
-                    <Input
-                        value={settings?.projectName}
-                        onChange={(e) =>
-                            onUpdateSetting(
-                                SETTINGS_MAP.PROJECT_NAME,
-                                e.target.value
-                            )
-                        }
-                        placeholder="Enter project name"
                     />
                 </div>
 
@@ -188,7 +180,7 @@ export default function AdvancedSettings({
                 </div>
 
                 <div className="space-y-2 flex items-center justify-between gap-4">
-                    <div className="flex items-center justify-between gap-16">
+                    <div className="flex items-center justify-between gap-4">
                         <div className="flex items-center gap-2">
                             <Label>Subtitle</Label>
                             <Switch

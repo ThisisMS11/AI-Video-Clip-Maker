@@ -1,15 +1,10 @@
 import { NextRequest } from 'next/server';
 import { createLoggerWithLabel } from '@/app/api/utils/logger';
 import { makeResponse } from '@/app/api/utils/makeResponse';
+import { pollingResponse } from '@/types';
+import { STATUS_MAP } from '@/constants';
 
 const logger = createLoggerWithLabel('VIZARD_STATUS_API');
-
-interface VizardResponse {
-    code: 1000 | 2000 | 4001 | 4002 | 4003 | 4004 | 4005 | 4006 | 4007 | 4008;
-    videos?: string[];
-    shareLink?: string;
-    errMsg?: string;
-}
 
 const ERROR_MESSAGES: Record<number, string> = {
     4001: 'Invalid API key',
@@ -58,7 +53,7 @@ export async function GET(
             );
         }
 
-        const data: VizardResponse = await response.json();
+        const data: pollingResponse = await response.json();
         logger.info(
             `Received response for project ${project_id}: ${JSON.stringify(data)}`
         );
@@ -67,13 +62,14 @@ export async function GET(
         switch (data.code) {
             case 1000:
                 return makeResponse(200, true, 'Processing', {
-                    status: 'processing',
+                    status: STATUS_MAP.PROCESSING,
+                    code: data.code,
                 });
             case 2000:
                 return makeResponse(200, true, 'Clipping succeeded', {
-                    status: 'completed',
+                    status: STATUS_MAP.SUCCEEDED,
                     videos: data.videos,
-                    shareLink: data.shareLink,
+                    code: data.code,
                 });
             default:
                 // Handle error codes (4001-4008)
@@ -83,8 +79,8 @@ export async function GET(
                     `Error for project ${project_id}: ${errorMessage}`
                 );
                 return makeResponse(400, false, errorMessage, {
-                    errorCode: data.code,
-                    errorMessage: data.errMsg,
+                    status: STATUS_MAP.FAILED,
+                    code: data.code,
                 });
         }
     } catch (error) {

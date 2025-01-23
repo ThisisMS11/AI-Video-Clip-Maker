@@ -5,7 +5,7 @@ import { STATUS_MAP } from '@/constants';
 import { pollingResponse } from '@/types';
 
 export const useMediaProcessing = () => {
-    const [projectId, setProjectId] = useState<string | null>(null);
+    const [projectId, setProjectId] = useState<number | null>(null);
     const [status, setStatus] = useState<string>(STATUS_MAP.DEFAULT);
     const [output, setOutput] = useState<pollingResponse | null>(null);
     const [cloudinaryOriginalUrl, setCloudinaryOriginalUrl] = useState<
