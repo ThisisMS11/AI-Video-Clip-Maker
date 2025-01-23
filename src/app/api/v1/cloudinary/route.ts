@@ -43,7 +43,6 @@ export async function POST(request: NextRequest) {
             { status: 400 }
         );
     }
-
     const folder =
         type === MEDIA_TYPE.ORIGINAL
             ? CLOUDINARY_FOLDER.ORIGINAL

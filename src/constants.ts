@@ -1,3 +1,5 @@
+import { pollingResponse } from "./types";
+
 export const STATUS_MAP = {
     DEFAULT: 'default',
     PROCESSING: 'processing',
@@ -183,6 +185,63 @@ export const sampleHistoryOutput = [
         ],
     },
 ];
+
+export const samplePollingResponse = {
+    code : 2000,
+    videos: [
+        {
+            "viralScore": "10",
+            "relatedTopic": "[]",
+            "transcript": "Start talking to customers. If you don't have customers yet, start by talking to people who have this problem and figure out why is this a problem for them? What are they struggling with? Get their thought process. When they run into an obstacle where they need to create a screen recording, what were the events that led up to them wanting to create that screen recording? And then we keep coming back to this idea of a pathway. What should they be able to do as a result of that screen recording? So talking to people and finding out what that problem is and using that to identify what that first topic is going to be. And you might write down a bunch of different topics, which is good. But ultimately, the next step with ideation is that you want to select one single topic. Every single video you should come up with should have one job to do, and it's to answer that question. We start out what we call the foundation. There's three questions in there, but for now, let's just pick two. So the main two question is, who is your audience? Who is this video for? And then what is the outcome of the video? What should somebody be able to do or do after watching the video? And an emphasis on the do because I believe that the reason you're creating videos for marketing is to drive some action. The same with learning. If people learn something and it's just a nugget of knowledge that sticks in their head, that doesn't really matter to me unless I can actually see them do something in the real world. So with ideation, what you want to nail down is those two things. Identify who the person is that you're talking to. What is the thing that they're trying to do? And then if they were to come to your video, what is the outcome of that? What will they actually do as a result of your watching your video? So once you do that, you start to create a scope for your video.",
+            "videoUrl": "https://res.cloudinary.com/cloudinarymohit/video/upload/v1737649355/task_4_AI_Generated_Clips_Clipped_Videos/zympacshw5tnjvmfswny.mp4",
+            "videoMsDuration": 53875,
+            "videoId": 11869633,
+            "title": "Unlock the Power of Customer Insights for Effective Videos",
+            "viralReason": "The clip provides actionable advice on creating impactful videos by understanding customer needs, which is valuable and relatable content for creators and marketers alike."
+        },
+        {
+            "viralScore": "9",
+            "relatedTopic": "[\"video ideation\",\"audience\",\"outcome\"]",
+            "transcript": "So the main two question is, who is your audience? Who is this video for? And then what is the outcome of the video? What should somebody be able to do or do after watching the video? And an emphasis on the do because I believe that the reason you're creating videos for marketing is to drive some action. The same with learning. If people learn something and it's just a nugget of knowledge that sticks in their head, that doesn't really matter to me unless I can actually see them do something in the real world. So with ideation, what you want to nail down is those two things. Identify who the person is that you're talking to.",
+            "videoUrl": "https://res.cloudinary.com/cloudinarymohit/video/upload/v1737649355/task_4_AI_Generated_Clips_Clipped_Videos/thzqz9j8mutdv7oogot5.mp4",
+            "videoMsDuration": 33791,
+            "videoId": 11869632,
+            "title": "Nail Your Video's Audience and Outcome",
+            "viralReason": "The focus on defining audience and outcomes is crucial for content creators, making this clip highly relatable and actionable."
+        },
+        {
+            "viralScore": "8.8",
+            "relatedTopic": "[\"SEO\",\"search data\",\"video ideas\"]",
+            "transcript": "You mentioned that you would look at what people are searching. Do you do that qualitatively or is there like a database or... some type of analytics where you can dig into that search data? Yeah, so that's a good question. So I work a lot with my SEO team member who has a lot of apps and tools. They send me some ideas in that way. But what I do is if I talk to a person who says, I struggle with how to make a training video, for example, that's something that's very relevant for our audience.",
+            "videoUrl": "https://res.cloudinary.com/cloudinarymohit/video/upload/v1737649356/task_4_AI_Generated_Clips_Clipped_Videos/wm72vfz6oyhnv2g9lzb0.mp4",
+            "videoMsDuration": 35333,
+            "videoId": 11869631,
+            "title": "Leverage SEO for Video Ideas",
+            "viralReason": "This clip discusses the integration of SEO in video creation, which is a hot topic for creators looking to optimize their content."
+        },
+        {
+            "viralScore": "8.5",
+            "relatedTopic": "[\"customer feedback\",\"problem solving\",\"video creation\"]",
+            "transcript": "Start talking to customers. If you don't have customers yet, start by talking to people who have this problem and figure out why is this a problem for them? What are they struggling with? Get their thought process. When they run into an obstacle where they need to create a screen recording, what were the events that led up to them wanting to create that screen recording? And then we keep coming back to this idea of a pathway. What should they be able to do as a result of that screen recording? So talking to people and finding out...",
+            "videoUrl": "https://cdn-video.vizard.ai/vizard/video/export/20250122/11869630-7aa88d3f03c14bf58a12e3ccef7f0df2.mp4?Expires=1738171981&Signature=ejBAbbJXG-WKOjm0U-dCiI~TVAc8i9Wvm5VuOMbDBiCfyENNpjR4ehQmcxXkWuxeVulLwrVtIXN9iQgcsmrPIdVOjM5bxM6rMu5db5FdJMlyXFl2rBLP2RmNomr71mIwsGKsidcmqGWCJJH4dhcJ6xSDb1ZMHoqa1JY5bp~23N0NsNgGWyAw6-kVZs41qHSPzNdGQuAKMtdw9lkEFXJH-WyChMB7u54V16MvGDDjkjSYsRURhb-nT62ziQyOM6Vu3~dFEAEKfTLfFSm8PkskzTrzJW9nb5nvHlkupUN5LVEvv1Jmu3QNqTWNPDrzLrntzUsrLbVroS4uY0SG-2EZgQ__&Key-Pair-Id=K1STSG6HQYFY8F",
+            "videoMsDuration": 28416,
+            "videoId": 11869630,
+            "title": "Unlocking Customer Insights for Better Videos",
+            "viralReason": "This clip emphasizes the importance of understanding customer pain points, which resonates with many creators and entrepreneurs."
+        },
+        {
+            "viralScore": "8",
+            "relatedTopic": "[\"video scope\",\"content creation\",\"focus\"]",
+            "transcript": "Once you have those two places, you're ready to start thinking about the next step of creating a video. So that's where ideation starts. The beginning and the audience and the outcome. You nail those two down and figure out what that job is to be done. You mentioned that you would look at what people are searching.",
+            "videoUrl": "https://cdn-video.vizard.ai/vizard/video/export/20250122/11869629-58073535b1b64c01a81796d915999da9.mp4?Expires=1738171981&Signature=A1IQrtYF~Jc2CvpSM8HS2OZF8g3epqm8OVRfiVXL6damI44EORJj0ICDICvcdsZ5mk-hZF0Fb3PfiGYamgT3EOR5I6lzyg0aanjOFKVccQ7-hFKjmrlXAL-aAitTNkQt~RBcpa1dKEPLQBM9mGjdXavMDrLvcDgC1DJf~aVver2E7xJEXiJTDfQRfd7dFD4QH4pRkUOqvhvK-RYKtwH1GEfqfotYNoqDNqi5Q4VjriLrBtzdsXMLaPWCWwdjCPUKd~f9m~82eInZmzla2MNkPCB~N09KaW-MZ9laO6x3GX8JPUpFGZipzg2Sp8fVuVKTzM4hRcP~lygWTgUKmC9Akg__&Key-Pair-Id=K1STSG6HQYFY8F",
+            "videoMsDuration": 17916,
+            "videoId": 11869629,
+            "title": "Create a Clear Scope for Your Videos",
+            "viralReason": "The concept of creating a scope for videos helps creators stay focused, making this clip valuable for anyone in content creation."
+        }
+    ],
+    projectId: 14998876
+} as pollingResponse
 
 export const INITIAL_SETTINGS = {
     videoUrl: '',

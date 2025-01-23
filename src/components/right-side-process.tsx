@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Upload, Wand2, XCircle, RefreshCcw } from 'lucide-react';
 import { STATUS_MAP } from '@/constants';
 import { pollingResponse } from '@/types';
+import VideoOutputDisplay from '@/components/video-corosuel'
 
 interface VideoPreviewProps {
     status: string;
@@ -42,16 +43,10 @@ export default function RightSideProcess({
             );
         case STATUS_MAP.SUCCEEDED:
             return (
-                <div className="h-[60%]">
+                <div className="h-[100%]">
                     {output ? (
-                        <div className="relative w-full h-full bg-muted rounded-lg">
-                            {/* <img
-                                src={transformedGIFUrl}
-                                alt="Transformed GIF"
-                                className="rounded-lg h-full w-full object-contain"
-                            /> */}
-                            We have got some output to display ! Chill bro.
-                        </div>
+                        // @ts-ignore 
+                        <VideoOutputDisplay outputs={output.videos} />
                     ) : (
                         <div className="h-full flex items-center justify-center">
                             <p className="text-muted-foreground">

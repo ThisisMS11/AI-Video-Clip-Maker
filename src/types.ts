@@ -63,19 +63,21 @@ export interface ImageTransformationHistoryModalProps {
     onOpenChange: (open: boolean) => void;
 }
 
+export interface clipType {
+    viralScore: string;
+    relatedTopic: string;
+    transcript: string;
+    videoUrl: string;
+    videoMsDuration: number;
+    videoId: number;
+    title: string;
+    viralReason: string;
+}
+
 export interface pollingResponse {
     code: number;
     projectId?: number;
-    videos?: {
-        viralScore: string;
-        relatedTopic: string;
-        transcript: string;
-        videoUrl: string;
-        vidoeMsDuration: number;
-        videoId: number;
-        title: string;
-        viralReason: string;
-    };
+    videos?: clipType[];
 }
 
 export interface APIResponse {

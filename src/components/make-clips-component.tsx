@@ -257,10 +257,10 @@ export default function ImageTransformer() {
                             onRetry={onProcess}
                         />
 
-                        {(status === STATUS_MAP.SUCCEEDED ||
+                        {/* {(status === STATUS_MAP.SUCCEEDED ||
                             status === STATUS_MAP.FAILED) && (
                             <Statistics data={output} />
-                        )}
+                        )} */}
                     </div>
                 </div>
 

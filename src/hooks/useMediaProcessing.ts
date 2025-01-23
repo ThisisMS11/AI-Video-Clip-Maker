@@ -3,11 +3,12 @@ import { useState } from 'react';
 import { vizardService } from '@/services/api';
 import { STATUS_MAP } from '@/constants';
 import { pollingResponse } from '@/types';
+import { samplePollingResponse } from '@/constants';
 
 export const useMediaProcessing = () => {
     const [projectId, setProjectId] = useState<number | null>(null);
-    const [status, setStatus] = useState<string>(STATUS_MAP.DEFAULT);
-    const [output, setOutput] = useState<pollingResponse | null>(null);
+    const [status, setStatus] = useState<string>(STATUS_MAP.SUCCEEDED);
+    const [output, setOutput] = useState<pollingResponse | null>(samplePollingResponse);
     const [cloudinaryOriginalUrl, setCloudinaryOriginalUrl] = useState<
         string | null
     >(null);

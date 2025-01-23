@@ -4,6 +4,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import clientPromise from '@/app/api/utils/mongoClient';
 import { MongoSaveOutput, BaseOutput } from '@/types';
 import { makeResponse } from '@/app/api/utils/makeResponse';
+import { MEDIA_TYPE, STATUS_MAP } from '@/constants';
 
 const logger = createLoggerWithLabel('DB_OUTPUT');
 
@@ -91,10 +92,29 @@ export async function POST(request: NextRequest) {
                 created_at: new Date(),
             }));
 
+        /* upload all the video files to cloudinary first and then replace the document.video_url with cloudinary obtained url */
+        const uploadedDocuments = await Promise.all(
+            documents.map(async (document) => {
+                const cloudinaryResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/v1/cloudinary`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        mediaUrl: document.video_url,
+                        type: MEDIA_TYPE.PROCESSED
+                    })
+                });
+
+                const { data } = await cloudinaryResponse.json();
+                return {
+                    ...document,
+                    video_url: data.url
+                };
+            })
+        );
+
         // Insert documents if any remain after filtering
         const result =
-            documents.length > 0
-                ? await collection.insertMany(documents)
+            uploadedDocuments.length > 0
+                ? await collection.insertMany(uploadedDocuments)
                 : { acknowledged: true, insertedCount: 0 };
 
         if (!result.acknowledged) {
@@ -103,7 +123,7 @@ export async function POST(request: NextRequest) {
         }
 
         logger.info(
-            `Successfully stored ${documents.length} output documents for project_id: ${project_id}`
+            `Successfully stored ${uploadedDocuments.length} output documents for project_id: ${project_id}`
         );
         return makeResponse(200, true, 'Output documents stored successfully', {
             insertedCount: result.insertedCount,
