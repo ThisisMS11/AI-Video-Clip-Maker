@@ -88,6 +88,13 @@ export const LANGUAGE_MAP = {
     'Vietnamese (Tiếng Việt)': 'vi',
 } as const;
 
+export const RETRY_CONFIG = {
+    MAX_RETRIES: RETRIES.REPLICATE_SERVICE,
+    BASE_DELAY: WAIT_TIMES.REPLICATE_SERVICE_RETRY,
+    MAX_DELAY: 32000,
+    JITTER_FACTOR: 0.2,
+};
+
 export const sampleHistoryOutput = [
     {
         _id: '64abc123def456ghijkl7890',

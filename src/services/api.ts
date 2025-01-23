@@ -1,93 +1,86 @@
 import { fetchClient } from '../utils/fetchClient';
 import {
-    PredictionResponse,
+    pollingResponse,
     MongoSaveInput,
-    ModelSettings,
+    MongoSaveOutput,
+    SettingsType,
     MongoFetchResult,
+    APIResponse,
 } from '../types';
 
 export const cloudinaryService = {
-    upload: async (imageUrl: string, type: string) => {
+    upload: async (mediaUrl: string, type: string) => {
         try {
-            const data = await fetchClient<{ url: string }>('cloudinary', {
+            const data = await fetchClient<APIResponse>('cloudinary', {
                 method: 'POST',
-                body: JSON.stringify({ imageUrl, type }),
+                body: JSON.stringify({ mediaUrl, type }),
             });
-
-            if (!data.url) {
-                throw new Error('Invalid response from Cloudinary API');
-            }
-
             return data;
         } catch (error) {
-            console.error('Error uploading to Cloudinary:', error);
-            throw new Error('Failed to upload image to Cloudinary');
+            throw error;
         }
     },
 };
 
 export const databaseService = {
-    saveInfo: async (inputData: MongoSaveInput) => {
+    saveInputInfo: async (inputData: MongoSaveInput) => {
         try {
-            const data = await fetchClient('db', {
+            const data = await fetchClient<APIResponse>('db/vizard-input', {
                 method: 'POST',
                 body: JSON.stringify(inputData),
             });
-
-            // console.log('Database save response:', data);
             return data;
         } catch (error) {
-            console.error('Failed to save to database:', error);
-            throw new Error('Failed to save image information to database');
+            throw error;
+        }
+    },
+    saveOutputInfo: async (outputData: MongoSaveOutput) => {
+        try {
+            const data = await fetchClient<APIResponse>('db/vizard-output', {
+                method: 'POST',
+                body: JSON.stringify(outputData),
+            });
+
+            return data;
+        } catch (error) {
+            throw error;
         }
     },
 
     fetchHistory: async () => {
         try {
-            const data = await fetchClient<{ data: MongoFetchResult[] }>('db', {
+            const data = await fetchClient<APIResponse>('db', {
                 method: 'GET',
             });
-            return data.data as MongoFetchResult[];
+            return data;
         } catch (error) {
-            console.error('Failed to fetch history:', error);
-            throw new Error('Failed to fetch history');
+            throw error;
         }
     },
 };
 
-export const predictionService = {
-    getStatus: async (id: string) => {
-        console.log('CALLING PREDICTION STATUS');
+export const vizardService = {
+    processMedia: async (settings: SettingsType) => {
         try {
-            return await fetchClient<PredictionResponse>(
-                'replicate/prediction',
-                {
-                    params: { id },
-                }
-            );
-        } catch (error) {
-            console.error('Polling error:', error);
-            throw new Error('Failed to get prediction status');
-        }
-    },
-};
-
-export const replicateService = {
-    processVideo: async (settings: ModelSettings) => {
-        try {
-            const data = await fetchClient<{ id: string }>('replicate', {
+            const data = await fetchClient<APIResponse>('vizard', {
                 method: 'POST',
                 body: JSON.stringify({ settings }),
             });
-
-            if (!data?.id) {
-                throw new Error('Invalid response: missing prediction ID');
-            }
-
             return data;
         } catch (error) {
-            console.error('Image processing error:', error);
-            throw new Error('Failed to start image processing');
+            throw error;
+        }
+    },
+
+    getPollResults: async (project_id: number) => {
+        console.log('CALLING POLLING RESULT');
+        try {
+            const data = await fetchClient<APIResponse>('vizard/polling', {
+                params: { project_id: String(project_id) },
+            });
+            return data;
+        } catch (error) {
+            throw error;
         }
     },
 };

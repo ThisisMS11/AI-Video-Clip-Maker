@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { v2 as cloudinary, UploadApiOptions } from 'cloudinary';
 import { createLoggerWithLabel } from '../../utils/logger';
 import { MEDIA_TYPE, CLOUDINARY_FOLDER } from '@/constants';
+import { makeResponse } from '../../utils/makeResponse';
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -33,9 +34,9 @@ const getOptimalVideoSettings = (): Partial<any> => {
 };
 
 export async function POST(request: NextRequest) {
-    const { videoUrl, type } = await request.json();
+    const { mediaUrl, type } = await request.json();
 
-    if (!videoUrl) {
+    if (!mediaUrl) {
         logger.warn('Video URL is required');
         return NextResponse.json(
             { error: 'Video URL is required' },
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
         );
 
         const result = await cloudinary.uploader.upload(
-            videoUrl,
+            mediaUrl,
             uploadOptions
         );
 
@@ -91,17 +92,26 @@ export async function POST(request: NextRequest) {
                 ? result.eager[0].secure_url
                 : result.secure_url;
 
-        return NextResponse.json({
+        const data = {
             url: responseUrl,
             public_id: result.public_id,
-        });
+        };
+
+        return makeResponse(
+            200,
+            true,
+            'Successfully uploaded media to cloudinary',
+            data
+        );
     } catch (error) {
         logger.error(
             `Error uploading video to cloudinary: ${JSON.stringify(error)}`
         );
-        return NextResponse.json(
-            { error: 'Failed to upload video' },
-            { status: 500 }
+        return makeResponse(
+            500,
+            false,
+            `Failed to upload video :${error instanceof Error ? error.message : 'Unknown error'}`,
+            null
         );
     }
 }

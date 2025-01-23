@@ -42,7 +42,6 @@ export type MongoFetchResult = {
     output: BaseOutput[];
 };
 
-// Frontend settings type with camelCase naming
 export interface SettingsType {
     videoUrl: string;
     videoType: number; // 1-5
@@ -62,4 +61,26 @@ export type StatusType = keyof typeof STATUS_MAP;
 export interface ImageTransformationHistoryModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
+}
+
+export interface pollingResponse {
+    code: string;
+    projectId?: number;
+    videos?: {
+        viralScore: string;
+        relatedTopic: string;
+        transcript: string;
+        videoUrl: string;
+        vidoeMsDuration: number;
+        videoId: number;
+        title: string;
+        viralReason: string;
+    };
+}
+
+export interface APIResponse {
+    statusCode: number;
+    success: boolean;
+    message: string;
+    data: any;
 }
