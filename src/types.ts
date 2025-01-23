@@ -28,8 +28,9 @@ export type MongoSaveInput = BaseVideoSettings & {
     project_id: number;
 };
 
-export type MongoSaveOutput = BaseOutput[] & {
+export type MongoSaveOutput = {
     project_id: number;
+    outputs: BaseOutput[];
 };
 
 export type MongoFetchResult = {

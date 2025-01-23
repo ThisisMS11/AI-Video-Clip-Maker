@@ -9,7 +9,7 @@ const logger = createLoggerWithLabel('DB_INPUT');
 
 export async function POST(request: NextRequest) {
     try {
-        logger.info('Starting to process image information storage request');
+        logger.info('Starting to store process information');
 
         // Validate request body exists
         if (!request.body) {
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (video_type === 1 && !ext) {
+        if (video_type == 1 && !ext) {
             logger.warn('Video type is set to 1 but extension is missing');
             return makeResponse(
                 400,
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
 
         // Validate field types and formats
         if (typeof video_url !== 'string' || !video_url.startsWith('http')) {
-            logger.warn('Invalid image_url format');
-            return makeResponse(400, false, 'Invalid image_url format', null);
+            logger.warn('Invalid video_url format');
+            return makeResponse(400, false, 'Invalid video_url format', null);
         }
 
         const user = await currentUser();
@@ -102,13 +102,20 @@ export async function POST(request: NextRequest) {
         }
 
         // Ensure environment variables are defined
-        if (!process.env.DB_NAME || !process.env.COLLECTION_NAME) {
+        if (!process.env.DB_NAME || !process.env.PROJECTS_COLLECTION) {
             logger.error('Database configuration missing');
             throw new Error('Database or collection name not configured');
         }
 
         const db = client.db(process.env.DB_NAME);
-        const collection = db.collection(process.env.COLLECTION_NAME);
+        const collection = db.collection(process.env.PROJECTS_COLLECTION);
+
+        // Check if project with same project_id already exists
+        const existingProject = await collection.findOne({ project_id });
+        if (existingProject) {
+            logger.warn(`Project with id ${project_id} already exists`);
+            return makeResponse(409, false, 'Project ID already exists', null);
+        }
 
         const document = {
             user_id,
@@ -137,17 +144,17 @@ export async function POST(request: NextRequest) {
         }
 
         logger.info(
-            `Successfully stored image process with id: ${result.insertedId}`
+            `Successfully stored video process with id: ${result.insertedId}`
         );
-        return makeResponse(200, true, 'Image process stored successfully', {
+        return makeResponse(200, true, 'Video process stored successfully', {
             id: result.insertedId,
         });
     } catch (error) {
-        logger.error(`Error storing image process: ${error}`);
+        logger.error(`Error storing video process: ${error}`);
         return makeResponse(
             500,
             false,
-            'Failed to store image information',
+            `Failed to store video information ${error instanceof Error ? error.message : 'Unknown error'}`,
             null
         );
     }
@@ -197,7 +204,7 @@ export async function PATCH(request: NextRequest) {
             return makeResponse(503, false, 'Database connection failed', null);
         }
 
-        if (!process.env.DB_NAME || !process.env.COLLECTION_NAME) {
+        if (!process.env.DB_NAME || !process.env.PROJECTS_COLLECTION) {
             logger.error('Database configuration missing');
             return makeResponse(
                 503,
@@ -208,7 +215,7 @@ export async function PATCH(request: NextRequest) {
         }
 
         const db = client.db(process.env.DB_NAME);
-        const collection = db.collection(process.env.COLLECTION_NAME);
+        const collection = db.collection(process.env.PROJECTS_COLLECTION);
 
         const updateData: any = {
             status,
@@ -235,7 +242,9 @@ export async function PATCH(request: NextRequest) {
         );
         return makeResponse(200, true, 'Status updated successfully', null);
     } catch (error) {
-        logger.error(`Error updating status: ${error}`);
+        logger.error(
+            `Error updating status: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
         return makeResponse(500, false, 'Failed to update status', null);
     }
 }

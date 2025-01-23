@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { project_id, ...outputs } = body;
+        const { project_id, outputs } = body;
         if (!project_id) {
             logger.warn('Missing project_id in request');
             return makeResponse(400, false, 'project_id is required', null);
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Validate environment variables
-        if (!process.env.DB_NAME || !process.env.OUTPUT_COLLECTION) {
+        if (!process.env.DB_NAME || !process.env.OUTPUTS_COLLECTION) {
             logger.error('Database configuration missing');
             return makeResponse(
                 503,
@@ -61,18 +61,41 @@ export async function POST(request: NextRequest) {
         }
 
         const db = client.db(process.env.DB_NAME);
-        const collection = db.collection(process.env.OUTPUT_COLLECTION);
+        const collection = db.collection(process.env.OUTPUTS_COLLECTION);
 
-        // Prepare documents for insertion
-        const documents = outputs.map((output: BaseOutput) => ({
-            project_id,
-            user_id: user.id,
-            ...output,
-            created_at: new Date(),
-        }));
+        logger.info(`Iterating over the output length : ${outputs.length}`);
 
-        // Insert documents
-        const result = await collection.insertMany(documents);
+        if (!outputs || outputs.length === 0) {
+            logger.warn(`No outputs provided for project_id: ${project_id}`);
+            return makeResponse(400, false, 'No outputs provided', null);
+        }
+
+        // Filter out outputs with video_ids that already exist in the database
+        const existingVideoIds = await collection.distinct('video_id', {
+            video_id: {
+                $in: outputs.filter((o) => o.video_id).map((o) => o.video_id),
+            },
+        });
+
+        // Prepare documents for insertion, excluding ones with existing video_ids
+        const documents = outputs
+            .filter(
+                (output: BaseOutput) =>
+                    !output.video_id ||
+                    !existingVideoIds.includes(output.video_id)
+            )
+            .map((output: BaseOutput) => ({
+                project_id,
+                user_id: user.id,
+                ...output,
+                created_at: new Date(),
+            }));
+
+        // Insert documents if any remain after filtering
+        const result =
+            documents.length > 0
+                ? await collection.insertMany(documents)
+                : { acknowledged: true, insertedCount: 0 };
 
         if (!result.acknowledged) {
             logger.error('Failed to insert documents into MongoDB');
@@ -90,7 +113,7 @@ export async function POST(request: NextRequest) {
         return makeResponse(
             500,
             false,
-            'Failed to store output documents',
+            `Failed to store output documents ${error instanceof Error ? error.message : 'Unknown error'}`,
             null
         );
     }
