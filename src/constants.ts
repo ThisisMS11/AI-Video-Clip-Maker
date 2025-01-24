@@ -263,7 +263,7 @@ export const INITIAL_SETTINGS = {
     videoType: 1,
     lang: LANGUAGE_MAP['English'],
     preferLength: [],
-    ext: '',
+    ext: 'mp4',
     maxClipNumber: 5,
     keywords: '',
     projectName: '',
@@ -282,3 +282,5 @@ export const ERROR_MESSAGES: Record<number, string> = {
     4007: 'Insufficient remaining time in account',
     4008: 'Failed to download from video URL',
 };
+
+export const SUPPORTED_FORMATS = ['mp4', 'mov'];

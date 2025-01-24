@@ -31,7 +31,7 @@ export default function ImageTransformer() {
     );
     /* persistent states */
     const cloudinaryUrlRef = useRef<string | null>(null);
-    const projectIdRef = useRef<number | null>(null);   
+    const projectIdRef = useRef<number | null>(null);
 
     /* To Store the final output */
     const [output, setOutput] = useState<pollingResponse | null>(
@@ -72,7 +72,7 @@ export default function ImageTransformer() {
 
     /* Start processing image */
     const onProcess = async () => {
-        console.log('SETTINGS : ', settings);
+        // console.log('SETTINGS : ', settings);
         try {
             if (!uploadCareCdnUrl) {
                 toast.error('Error', {
@@ -113,11 +113,14 @@ export default function ImageTransformer() {
                 projectIdRef.current = projectId;
                 try {
                     if (cloudinaryUrlRef.current) {
+                        console.log(
+                            `cloudinarUrlRef.current : `,
+                            cloudinaryUrlRef.current
+                        );
                         updateSetting(
                             SETTINGS_MAP.VIDEO_URL,
                             cloudinaryUrlRef.current
                         );
-                        console.log('Before Inputdata save ', settings);
                         await saveInputData(
                             projectId,
                             settings,
@@ -211,10 +214,10 @@ export default function ImageTransformer() {
     const handlePollingResults = async (projectId: number) => {
         while (true) {
             try {
-                console.info(`Project ID : ${projectId}`);
+                console.info(`Calling Polling for Project ID : ${projectId}`);
 
                 const pollingData = await pollPredictionStatus(projectId);
-                console.log({ pollingData });
+                // console.log({ pollingData });
 
                 if (pollingData.data.code == 2000) {
                     /* handle the success case here */
@@ -222,6 +225,7 @@ export default function ImageTransformer() {
                     return;
                 } else if (pollingData.data.code == 1000) {
                     // Default case (handles processing and any other status)
+                    console.info(`Status : Processing`);
                     setStatus(STATUS_MAP.PROCESSING);
                     await delay(WAIT_TIMES.POLLING_SERVICE);
                 } else {
@@ -257,6 +261,7 @@ export default function ImageTransformer() {
                                     uploadCareCdnUrl={uploadCareCdnUrl}
                                     onUploadSuccess={setUploadCareCdnUrl}
                                     onRemoveMedia={onRemoveMedia}
+                                    onUpdateSetting={updateSetting}
                                 />
 
                                 <Separator className="my-2" />

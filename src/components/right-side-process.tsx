@@ -16,7 +16,7 @@ export default function RightSideProcess({
     output,
     onRetry,
 }: VideoPreviewProps) {
-    console.log({ status, output });
+    // console.log({ status, output });
     switch (status) {
         case STATUS_MAP.UPLOADING:
             return (
@@ -25,7 +25,7 @@ export default function RightSideProcess({
                         <Upload className="w-10 h-10 text-muted-foreground" />
                     </div>
                     <h2 className="text-2xl font-semibold">
-                        Uploading Image...
+                        Uploading Video...
                     </h2>
                     <Progress value={33} className="w-[65%] mx-auto" />
                 </div>
@@ -36,9 +36,7 @@ export default function RightSideProcess({
                     <div className="mx-auto w-20 h-20 rounded-full bg-muted flex items-center justify-center animate-spin">
                         <Wand2 className="w-10 h-10 text-muted-foreground" />
                     </div>
-                    <h2 className="text-2xl font-semibold">
-                        Transforming Image...
-                    </h2>
+                    <h2 className="text-2xl font-semibold">Making Clips...</h2>
                     <Progress value={66} className="w-[65%] mx-auto" />
                 </div>
             );
@@ -105,11 +103,11 @@ export default function RightSideProcess({
                                 <Wand2 className="w-10 h-10 text-muted-foreground" />
                             </div>
                             <h2 className="text-2xl font-semibold">
-                                Ready to create AI Generated Age Transformation
-                                GIF
+                                Ready to create AI Generated Clips
                             </h2>
                             <p className="text-muted-foreground">
-                                Upload a image and generate your GIF
+                                Upload a video in .mp4 or .mov extension and
+                                generate your clips
                             </p>
                         </div>
                     </div>

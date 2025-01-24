@@ -29,11 +29,13 @@ export const usePollingHandling = () => {
         try {
             const snakeCasedData = convertKeysToSnakeCase(data);
             const settings = {
+                ...snakeCasedData,
                 project_id,
                 status: STATUS_MAP.PROCESSING,
                 video_url: cloudinaryUrl,
-                ...snakeCasedData,
             } as MongoSaveInput;
+
+            // console.log('Settings sent to saveInputInfo :', settings)
 
             const response: APIResponse =
                 await databaseService.saveInputInfo(settings);

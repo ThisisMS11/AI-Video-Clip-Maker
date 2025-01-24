@@ -45,9 +45,9 @@ export function ImageHistoryModal({
     const fetchHistory = async () => {
         try {
             const result = await databaseService.fetchHistory();
-            console.log(result);
+            // console.log(result);
             if (result.success) {
-                console.log(result.data);
+                // console.log(result.data);
                 setHistory(result.data);
             }
         } catch (error) {

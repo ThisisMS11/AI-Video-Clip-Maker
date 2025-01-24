@@ -44,6 +44,12 @@ if (process.env.NODE_ENV !== 'production') {
             filename: path.join(process.cwd(), 'logs', 'combined.log'),
         })
     );
+    logger.add(
+        new transports.File({
+            filename: path.join(process.cwd(), 'logs', 'debug.log'),
+            level: 'debug',
+        })
+    );
 
     // Add console transport for better readability in dev
     logger.add(

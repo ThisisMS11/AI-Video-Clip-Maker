@@ -161,7 +161,7 @@ export default function AdvancedSettings({
                     </DropdownMenu>
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                     <Label>File Extension</Label>
                     <Select
                         value={settings?.ext}
@@ -173,13 +173,11 @@ export default function AdvancedSettings({
                             <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="mp4">MP4</SelectItem>
-                            <SelectItem value="3gp">3GP</SelectItem>
-                            <SelectItem value="avi">AVI</SelectItem>
+                            <SelectItem value="mp4" defaultChecked>MP4</SelectItem>
                             <SelectItem value="mov">MOV</SelectItem>
                         </SelectContent>
                     </Select>
-                </div>
+                </div> */}
 
                 <div className="space-y-2">
                     <Label>Keywords (Optional)</Label>

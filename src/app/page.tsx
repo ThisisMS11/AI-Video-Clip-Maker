@@ -7,7 +7,7 @@ import { CheckCircle2 } from 'lucide-react';
 export default function App() {
     useEffect(() => {
         toast('Welcome', {
-            description: 'Welcome to Age Transformation Tool',
+            description: 'Welcome to AI Clips Maker Tool',
             duration: 3000,
             icon: <CheckCircle2 className="h-4 w-4 text-green-500" />,
         });
@@ -20,11 +20,9 @@ export default function App() {
             </SignedIn>
             <SignedOut>
                 <div className="text-center space-y-4">
-                    <h1 className="text-4xl font-bold">
-                        Age Transformation Tool
-                    </h1>
+                    <h1 className="text-4xl font-bold">AI Clips Maker Tool</h1>
                     <p className="text-lg text-muted-foreground">
-                        Please sign in to transform your images
+                        Please sign in to make clips out of your videos
                     </p>
                 </div>
             </SignedOut>

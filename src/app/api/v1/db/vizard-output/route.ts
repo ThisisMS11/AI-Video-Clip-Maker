@@ -10,7 +10,7 @@ const logger = createLoggerWithLabel('DB_OUTPUT');
 
 export async function POST(request: NextRequest) {
     try {
-        logger.info('Starting to process output storage request');
+        logger.info('Starting to store project output information');
 
         if (!request.body) {
             logger.warn('Empty request body');
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
 
         const { project_id, videos } = body;
         logger.info(
-            `project_id : ${project_id} videos : ${JSON.stringify(videos)}`
+            `project_id : ${project_id} Number of videos : ${videos?.length}`
         );
         if (!project_id) {
             logger.warn('Missing project_id in request');
@@ -117,8 +117,6 @@ export async function POST(request: NextRequest) {
             })
         );
 
-        logger.info(`uploadedDocuments : ${JSON.stringify(uploadedDocuments)}`);
-
         // Insert documents if any remain after filtering
         logger.info(`Inserting ${uploadedDocuments.length} documents into DB`);
         const result =
@@ -147,3 +145,5 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+
+export const maxDuration = 60;

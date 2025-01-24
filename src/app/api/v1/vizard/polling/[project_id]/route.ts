@@ -50,20 +50,20 @@ export async function GET(
         /* Handle different response codes */
         switch (data.code) {
             case 1000:
-                logger.info("[Status] : Processing")
+                logger.info('[Status] : Processing');
                 return makeResponse(200, true, 'Processing', {
                     status: STATUS_MAP.PROCESSING,
                     code: data.code,
                 });
             case 2000:
-                logger.info("[Status] : Succeeded")
+                logger.info('[Status] : Succeeded');
                 return makeResponse(200, true, 'Clipping succeeded', {
                     status: STATUS_MAP.SUCCEEDED,
                     videos: data.videos,
                     code: data.code,
                 });
             default:
-                logger.info("[Status] : Failed")
+                logger.info('[Status] : Failed');
                 const errorMessage =
                     ERROR_MESSAGES[data.code] || 'Unknown error';
                 logger.error(

@@ -74,9 +74,7 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        logger.info(
-            `Uploading video type : ${type} to cloudinary with options: ${JSON.stringify(uploadOptions)}`
-        );
+        logger.info(`Uploading video type : ${type}`);
 
         const result = await cloudinary.uploader.upload(
             mediaUrl,

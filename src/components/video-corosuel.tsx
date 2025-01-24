@@ -106,6 +106,18 @@ const VideoCarousel: React.FC<{ videos: clipType[] }> = ({ videos }) => {
                             <p className="text-sm text-gray-600 italic bg-gray-50 p-3 rounded-xl">
                                 {currentVideo.viralReason}
                             </p>
+                            {/* Copy Transcript Button */}
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(
+                                        currentVideo.transcript || ''
+                                    );
+                                    alert('Transcript copied to clipboard!');
+                                }}
+                                className="w-full bg-blue-500 text-white font-semibold py-2 px-4 rounded-xl hover:bg-blue-600 transition"
+                            >
+                                Copy Transcript
+                            </button>
                         </div>
                     </motion.div>
                 )}
@@ -115,8 +127,6 @@ const VideoCarousel: React.FC<{ videos: clipType[] }> = ({ videos }) => {
 };
 
 export default function VideoOutputDisplay({ videos }: { videos: clipType[] }) {
-    console.log({ videos });
-
     console.log(videos.length);
     if (!videos || videos.length === 0) {
         return (

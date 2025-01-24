@@ -151,3 +151,5 @@ export async function GET() {
         return makeResponse(500, false, 'Failed to retrieve information', null);
     }
 }
+
+export const maxDuration = 60;

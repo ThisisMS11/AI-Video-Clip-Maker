@@ -9,7 +9,7 @@ const logger = createLoggerWithLabel('DB_INPUT');
 
 export async function POST(request: NextRequest) {
     try {
-        logger.info('Starting to store process information');
+        logger.info('Starting to store project input information');
 
         // Validate request body exists
         if (!request.body) {
@@ -29,6 +29,8 @@ export async function POST(request: NextRequest) {
                 null
             );
         }
+
+        logger.debug(`Request Body : ${JSON.stringify(body)}`);
 
         const {
             status = STATUS_MAP.PROCESSING,
@@ -250,3 +252,5 @@ export async function PATCH(request: NextRequest) {
         return makeResponse(500, false, 'Failed to update status', null);
     }
 }
+
+export const maxDuration = 30;
