@@ -64,7 +64,7 @@ export async function GET() {
                     from: process.env.OUTPUTS_COLLECTION,
                     localField: 'project_id',
                     foreignField: 'project_id',
-                    as: 'output',
+                    as: 'videos',
                 },
             },
             // Project the fields we want to return
@@ -87,18 +87,18 @@ export async function GET() {
                         created_at: '$created_at',
                         completed_at: '$completed_at',
                     },
-                    output: {
+                    videos: {
                         $map: {
-                            input: '$output',
-                            as: 'output',
+                            input: '$videos',
+                            as: 'videos',
                             in: {
-                                video_url: '$$output.video_url',
-                                viral_score: '$$output.viral_score',
-                                transcript: '$$output.transcript',
-                                video_ms_duration: '$$output.video_ms_duration',
-                                video_id: '$$output.video_id',
-                                title: '$$output.title',
-                                viral_reason: '$$output.viral_reason',
+                                video_url: '$$videos.video_url',
+                                viral_score: '$$videos.viral_score',
+                                transcript: '$$videos.transcript',
+                                video_ms_duration: '$$videos.video_ms_duration',
+                                video_id: '$$videos.video_id',
+                                title: '$$videos.title',
+                                viral_reason: '$$videos.viral_reason',
                             },
                         },
                     },
@@ -134,7 +134,7 @@ export async function GET() {
                 keywords: null,
                 remove_silence_switch: null,
             },
-            output: Array.isArray(doc.output) ? doc.output : [],
+            videos: Array.isArray(doc.videos) ? doc.videos : [],
         }));
 
         logger.info(

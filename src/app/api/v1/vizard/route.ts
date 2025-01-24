@@ -1,7 +1,19 @@
 import { NextRequest } from 'next/server';
 import { createLoggerWithLabel } from '@/app/api/utils/logger';
 import { SettingsType } from '@/types';
-import { LANGUAGE_MAP, requiredEnvVars, SETTINGS_MAP } from '@/constants';
+import {
+    LANGUAGE_MAP,
+    requiredEnvVars,
+    SETTINGS_MAP,
+    ERROR_MESSAGES,
+    STATUS_MAP,
+    RETRIES,
+} from '@/constants';
+import {
+    delay,
+    calculateBackoff,
+    getErrorMessage,
+} from '@/utils/utilFunctions';
 import { makeResponse } from '../../utils/makeResponse';
 
 const logger = createLoggerWithLabel('VIZARD_CLIP_MAKER_API');
@@ -40,7 +52,7 @@ function validateRequirements(settings: SettingsType) {
     } catch (e) {
         return {
             validated: false,
-            message: 'Invalid video URL format',
+            message: getErrorMessage(e, 'Invalid video URL format'),
             inCorrectEntities: [SETTINGS_MAP.VIDEO_URL],
         };
     }
@@ -79,6 +91,90 @@ function validateRequirements(settings: SettingsType) {
     };
 }
 
+async function retryAPICall(settings: SettingsType): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+}> {
+    for (let attempt = 1; attempt <= RETRIES.VIZARD_SERVICE; attempt++) {
+        try {
+            const response = await fetch(
+                'https://elb-api.vizard.ai/hvizard-server-front/open-api/v1/project/create',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        VIZARDAI_API_KEY: process.env
+                            .VIZARDAI_API_KEY as string,
+                    },
+                    body: JSON.stringify(settings),
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(
+                    `API request failed with status ${response.status}`
+                );
+            }
+
+            const data = await response.json();
+            logger.info(
+                `API Called response (Attempt ${attempt}): ${JSON.stringify(data)}`
+            );
+
+            // Check if we should retry
+            if (![1000, 2000].includes(data.code)) {
+                // If not a known success code, and we haven't exhausted retries
+                if (attempt < RETRIES.VIZARD_SERVICE) {
+                    // Exponential backoff with jitter
+                    const backoffTime =
+                        Math.pow(2, attempt) * 1000 +
+                        Math.floor(Math.random() * 1000);
+
+                    logger.info(
+                        `Retrying in ${backoffTime}ms due to code ${data.code}`
+                    );
+                    await delay(backoffTime);
+                    continue;
+                }
+            }
+
+            // Successful response or last retry
+            return {
+                success: [1000, 2000].includes(data.code),
+                data,
+            };
+        } catch (error) {
+            logger.error(
+                `API call error (Attempt ${attempt}): ${error instanceof Error ? error.message : JSON.stringify(error)}`
+            );
+
+            // If it's the last attempt, throw the error
+            if (attempt === RETRIES.VIZARD_SERVICE) {
+                return {
+                    success: false,
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : 'Unknown error',
+                };
+            }
+
+            // Exponential backoff with jitter for error cases
+            const backoffTime = calculateBackoff(attempt);
+
+            logger.info(`Retrying in ${backoffTime}ms due to error`);
+            await delay(backoffTime);
+        }
+    }
+
+    // Fallback return (should never reach here due to earlier return)
+    return {
+        success: false,
+        error: 'Max retries exceeded',
+    };
+}
+
 export async function POST(request: NextRequest) {
     try {
         const { settings }: { settings: SettingsType } = await request.json();
@@ -102,28 +198,46 @@ export async function POST(request: NextRequest) {
             `Starting the process of creating clips for ${JSON.stringify(settings)}`
         );
 
-        const response = await fetch(
-            'https://elb-api.vizard.ai/hvizard-server-front/open-api/v1/project/create',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    VIZARDAI_API_KEY: process.env.VIZARDAI_API_KEY as string,
-                },
-                body: JSON.stringify(settings),
-            }
-        );
+        // Use new retry mechanism
+        const apiResult = await retryAPICall(settings);
 
-        if (!response.ok) {
-            throw new Error(
-                `API request failed with status ${response.status}`
+        if (!apiResult.success) {
+            // Handle failure after all retries
+            if (apiResult.data?.code) {
+                const errorMessage =
+                    ERROR_MESSAGES[apiResult.data.code] || 'Unknown error';
+                return makeResponse(200, false, errorMessage, {
+                    status: STATUS_MAP.FAILED,
+                    code: apiResult.data.code,
+                    projectId: apiResult.data.projectId,
+                });
+            }
+
+            return makeResponse(
+                500,
+                false,
+                apiResult.error || 'Failed to process request',
+                null
             );
         }
 
-        const data = await response.json();
+        const data = apiResult.data;
 
         logger.info(`API Called response : ${JSON.stringify(data)}`);
-        return makeResponse(200, true, 'Clips making initiated', data);
+        return makeResponse(
+            200,
+            true,
+            data.code === 1000 ? 'Processing' : 'Clipping succeeded',
+            {
+                status:
+                    data.code === 1000
+                        ? STATUS_MAP.PROCESSING
+                        : STATUS_MAP.SUCCEEDED,
+                code: data.code,
+                projectId: data.projectId,
+                ...(data.code === 2000 && { videos: data.videos }),
+            }
+        );
     } catch (error) {
         if (error instanceof Error) {
             logger.error(`Vizard API error: ${error.message}`);

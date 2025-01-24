@@ -16,7 +16,6 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { format } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import { formatDuration } from '@/utils/utilFunctions';
 import {
@@ -24,14 +23,13 @@ import {
     MongoFetchResult,
 } from '@/types';
 import { databaseService } from '@/services/api';
-import { sampleHistoryOutput } from '@/constants';
+// import { sampleHistoryOutput } from '@/constants';
 
 export function ImageHistoryModal({
     open,
     onOpenChange,
 }: ImageTransformationHistoryModalProps) {
-    const [history, setHistory] =
-        useState<MongoFetchResult[]>(sampleHistoryOutput);
+    const [history, setHistory] = useState<MongoFetchResult[]>([]);
     const [loading, setLoading] = useState(false);
     const [selectedSettings, setSelectedSettings] =
         useState<MongoFetchResult | null>(null);
@@ -47,7 +45,11 @@ export function ImageHistoryModal({
     const fetchHistory = async () => {
         try {
             const result = await databaseService.fetchHistory();
-            setHistory(result);
+            console.log(result);
+            if (result.success) {
+                console.log(result.data);
+                setHistory(result.data);
+            }
         } catch (error) {
             console.error('Failed to fetch history:', error);
         } finally {
@@ -179,7 +181,7 @@ export function ImageHistoryModal({
                                                             />
                                                         </svg>
                                                         View{' '}
-                                                        {process.output.length}{' '}
+                                                        {process.videos.length}{' '}
                                                         Clips
                                                     </button>
                                                 </TableCell>
@@ -241,10 +243,7 @@ export function ImageHistoryModal({
                                                 Language
                                             </span>
                                             <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                                                {
-                                                    selectedSettings.settings
-                                                        .language
-                                                }
+                                                {selectedSettings.settings.lang}
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-center">
@@ -289,7 +288,7 @@ export function ImageHistoryModal({
                     </DialogHeader>
                     {selectedOutput && (
                         <div className="grid grid-cols-1 gap-4">
-                            {selectedOutput.output.map((output, index) => (
+                            {selectedOutput.videos.map((video, index) => (
                                 <div
                                     key={index}
                                     className="bg-white p-4 rounded-lg border"
@@ -300,37 +299,37 @@ export function ImageHistoryModal({
                                                 <h4 className="font-semibold text-gray-900 text-lg ml-2">
                                                     Clip {index + 1}
                                                 </h4>
-                                                {output.viral_score && (
+                                                {video.viral_score && (
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-sm font-medium text-gray-600">
                                                             Viral Score
                                                         </span>
                                                         <Badge className="bg-green-100 text-green-800 px-3 py-1">
-                                                            {output.viral_score}
+                                                            {video.viral_score}
                                                         </Badge>
                                                     </div>
                                                 )}
                                             </div>
 
-                                            {output.title && (
+                                            {video.title && (
                                                 <div className="bg-white p-3 rounded-md shadow-sm">
                                                     <span className="font-medium text-gray-700 block mb-1">
                                                         Title
                                                     </span>
                                                     <p className="text-gray-900">
-                                                        {output.title}
+                                                        {video.title}
                                                     </p>
                                                 </div>
                                             )}
 
-                                            {output.video_ms_duration && (
+                                            {video.video_ms_duration && (
                                                 <div className="bg-white p-3 rounded-md shadow-sm">
                                                     <span className="font-medium text-gray-700 block mb-1">
                                                         Duration
                                                     </span>
                                                     <p className="text-gray-900">
                                                         {formatDuration(
-                                                            output.video_ms_duration.toString()
+                                                            video.video_ms_duration.toString()
                                                         )}
                                                     </p>
                                                 </div>
@@ -338,21 +337,19 @@ export function ImageHistoryModal({
                                         </div>
                                         <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
                                             <div className="flex flex-col gap-3">
-                                                {output.viral_reason && (
+                                                {video.viral_reason && (
                                                     <div className="bg-white p-4 rounded-md shadow-sm">
                                                         <h4 className="font-medium text-gray-900 mb-2">
                                                             Viral Potential
                                                             Analysis
                                                         </h4>
                                                         <p className="text-gray-700 text-sm leading-relaxed">
-                                                            {
-                                                                output.viral_reason
-                                                            }
+                                                            {video.viral_reason}
                                                         </p>
                                                     </div>
                                                 )}
                                                 <a
-                                                    href={output.video_url}
+                                                    href={video.video_url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-sm hover:shadow-md"
@@ -375,13 +372,13 @@ export function ImageHistoryModal({
                                             </div>
                                         </div>
                                     </div>
-                                    {output.transcript && (
+                                    {video.transcript && (
                                         <div className="mt-4">
                                             <h5 className="font-medium text-gray-900 mb-2">
                                                 Transcript
                                             </h5>
                                             <div className="text-sm text-gray-600 max-h-40 overflow-y-auto p-2 bg-gray-50 rounded">
-                                                {output.transcript}
+                                                {video.transcript}
                                             </div>
                                         </div>
                                     )}

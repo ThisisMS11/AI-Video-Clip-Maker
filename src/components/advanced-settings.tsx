@@ -1,6 +1,5 @@
 import { SettingsType } from '@/types';
 import '@uploadcare/react-uploader/core.css';
-import { DropdownMenuCheckboxItemProps } from '@radix-ui/react-dropdown-menu';
 import {
     Select,
     SelectTrigger,
@@ -13,12 +12,9 @@ import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/imports/Shadcn_imports';
 import { SETTINGS_MAP, LANGUAGE_MAP } from '@/constants';
-type Checked = DropdownMenuCheckboxItemProps['checked'];
 
 interface AdvancedSettingsProps {
     settings: SettingsType | null;

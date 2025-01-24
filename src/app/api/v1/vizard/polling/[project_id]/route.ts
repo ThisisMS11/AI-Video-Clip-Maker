@@ -2,27 +2,16 @@ import { NextRequest } from 'next/server';
 import { createLoggerWithLabel } from '@/app/api/utils/logger';
 import { makeResponse } from '@/app/api/utils/makeResponse';
 import { pollingResponse } from '@/types';
-import { STATUS_MAP } from '@/constants';
+import { STATUS_MAP, ERROR_MESSAGES } from '@/constants';
 
 const logger = createLoggerWithLabel('VIZARD_STATUS_API');
 
-const ERROR_MESSAGES: Record<number, string> = {
-    4001: 'Invalid API key',
-    4002: 'Clipping failed',
-    4003: 'Requests exceeded the limit',
-    4004: 'Unsupported video format',
-    4005: 'Invalid video URL',
-    4006: 'Illegal parameter',
-    4007: 'Insufficient remaining time in account',
-    4008: 'Failed to download from video URL',
-};
-
 export async function GET(
     req: NextRequest,
-    { params }: { params: { project_id: string } }
+    { params }: { params: Promise<{ project_id: number }> }
 ) {
     try {
-        const { project_id } = params;
+        const project_id = (await params).project_id;
 
         if (!project_id) {
             logger.warn('Missing project_id parameter');
@@ -55,24 +44,26 @@ export async function GET(
 
         const data: pollingResponse = await response.json();
         logger.info(
-            `Received response for project ${project_id}: ${JSON.stringify(data)}`
+            `Received response for project ${project_id} code : ${data.code}`
         );
 
-        // Handle different response codes
+        /* Handle different response codes */
         switch (data.code) {
             case 1000:
+                logger.info("[Status] : Processing")
                 return makeResponse(200, true, 'Processing', {
                     status: STATUS_MAP.PROCESSING,
                     code: data.code,
                 });
             case 2000:
+                logger.info("[Status] : Succeeded")
                 return makeResponse(200, true, 'Clipping succeeded', {
                     status: STATUS_MAP.SUCCEEDED,
                     videos: data.videos,
                     code: data.code,
                 });
             default:
-                // Handle error codes (4001-4008)
+                logger.info("[Status] : Failed")
                 const errorMessage =
                     ERROR_MESSAGES[data.code] || 'Unknown error';
                 logger.error(
@@ -97,7 +88,7 @@ export async function GET(
     }
 }
 
-export const maxDuration = 30;
+export const maxDuration = 60;
 
 export const config = {
     api: {

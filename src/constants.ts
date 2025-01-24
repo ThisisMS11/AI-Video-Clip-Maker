@@ -11,7 +11,7 @@ export const STATUS_MAP = {
 
 export const RETRIES = {
     MONGO_DB_SERVICE: 5,
-    REPLICATE_SERVICE: 3,
+    VIZARD_SERVICE: 5,
     CLOUDINARY_SERVICE: 5,
 } as const;
 
@@ -33,7 +33,7 @@ export const requiredEnvVars = [
 ];
 
 export const WAIT_TIMES = {
-    CLOUDINARY_SERVICE: 5000,
+    CLOUDINARY_SERVICE: 10000,
     REPLICATE_SERVICE_RETRY: 5000,
     POLLING_SERVICE: 10000,
 } as const;
@@ -90,7 +90,7 @@ export const LANGUAGE_MAP = {
 } as const;
 
 export const RETRY_CONFIG = {
-    MAX_RETRIES: RETRIES.REPLICATE_SERVICE,
+    MAX_RETRIES: RETRIES.VIZARD_SERVICE,
     BASE_DELAY: WAIT_TIMES.REPLICATE_SERVICE_RETRY,
     MAX_DELAY: 32000,
     JITTER_FACTOR: 0.2,
@@ -270,4 +270,15 @@ export const INITIAL_SETTINGS = {
     subtitleSwitch: 1,
     headlineSwitch: 1,
     removeSilenceSwitch: 1,
+};
+
+export const ERROR_MESSAGES: Record<number, string> = {
+    4001: 'Invalid API key',
+    4002: 'Clipping failed',
+    4003: 'Requests exceeded the limit',
+    4004: 'Unsupported video format',
+    4005: 'Invalid video URL',
+    4006: 'Illegal parameter',
+    4007: 'Insufficient remaining time in account',
+    4008: 'Failed to download from video URL',
 };

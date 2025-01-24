@@ -4,7 +4,7 @@ import { currentUser } from '@clerk/nextjs/server';
 import clientPromise from '@/app/api/utils/mongoClient';
 import { MongoSaveOutput, BaseOutput } from '@/types';
 import { makeResponse } from '@/app/api/utils/makeResponse';
-import { MEDIA_TYPE, STATUS_MAP } from '@/constants';
+import { MEDIA_TYPE } from '@/constants';
 
 const logger = createLoggerWithLabel('DB_OUTPUT');
 

@@ -6,7 +6,6 @@ import { RefObject } from 'react';
 
 interface Args {
     uploadCareCdnUrl: string;
-    cloudinaryOriginalUrl: string | null;
     setCloudinaryOriginalUrl: (url: string | null) => void;
     setStatus: (status: string) => void;
     settings: SettingsType;
@@ -20,7 +19,6 @@ export const useProcess = () => {
     const startProcess = async (args: Args) => {
         const {
             uploadCareCdnUrl,
-            cloudinaryOriginalUrl,
             setCloudinaryOriginalUrl,
             setStatus,
             settings,
@@ -75,7 +73,8 @@ export const useProcess = () => {
                     }
                     return Number(projectId);
                 } catch (error) {
-                    throw error;
+                    console.error('Error from startProcessingMedia:', error);
+                    throw new Error(`Error from startProcessingMedia:${error}`);
                 }
             } catch (error) {
                 console.error(
@@ -103,8 +102,8 @@ export const useProcess = () => {
                 }
                 return Number(projectId);
             } catch (error) {
-                console.error('Error Creating Clips:', error);
-                throw error;
+                console.error('Error from startProcessingMedia:', error);
+                throw new Error(`Error from startProcessingMedia:${error}`);
             }
         }
     };

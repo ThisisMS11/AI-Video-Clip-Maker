@@ -2,7 +2,7 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Upload, Wand2, XCircle, RefreshCcw } from 'lucide-react';
 import { STATUS_MAP } from '@/constants';
-import { pollingResponse } from '@/types';
+import { clipType, pollingResponse } from '@/types';
 import VideoOutputDisplay from '@/components/video-corosuel';
 
 interface VideoPreviewProps {
@@ -46,8 +46,9 @@ export default function RightSideProcess({
             return (
                 <div className="h-[100%]">
                     {output ? (
-                        // @ts-ignore
-                        <VideoOutputDisplay videos={output.videos} />
+                        <VideoOutputDisplay
+                            videos={output.videos as clipType[]}
+                        />
                     ) : (
                         <div className="h-full flex items-center justify-center">
                             <p className="text-muted-foreground">

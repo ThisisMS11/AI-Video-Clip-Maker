@@ -26,6 +26,7 @@ export interface BaseOutput {
 export type MongoSaveInput = BaseVideoSettings & {
     status: string;
     project_id: number;
+    project_name: string;
 };
 
 export type MongoSaveOutput = {
@@ -39,7 +40,7 @@ export type MongoFetchResult = {
     project_id: number;
     status: string;
     settings: BaseVideoSettings;
-    output: BaseOutput[];
+    videos: BaseOutput[];
 };
 
 export interface SettingsType {

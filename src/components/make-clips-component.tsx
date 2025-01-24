@@ -20,23 +20,18 @@ import { Atom } from 'lucide-react';
 import { useProcess } from '@/hooks/useProcess';
 import { usePollingHandling } from '@/hooks/usePollingHandling';
 import { samplePollingResponse, SETTINGS_MAP, STATUS_MAP } from '@/constants';
-import {
-    APIResponse,
-    MongoSaveOutput,
-    pollingResponse,
-    SettingsType,
-} from '@/types';
+import { APIResponse, MongoSaveOutput, pollingResponse } from '@/types';
 import { WAIT_TIMES, INITIAL_SETTINGS } from '@/constants';
-import { delay } from '@/utils/utilFunctions';
+import { delay, getErrorMessage } from '@/utils/utilFunctions';
 
 export default function ImageTransformer() {
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
     const [uploadCareCdnUrl, setUploadCareCdnUrl] = useState<string | null>(
-        'https://res.cloudinary.com/cloudinarymohit/video/upload/v1737657302/task_4_AI_Generated_Clips_Original/pqpnylg1sfxqirtvydeh.mp4'
+        'https://ucarecdn.com/1a35dda7-4185-4f9d-a2e0-602e8b572836/'
     );
     /* persistent states */
     const cloudinaryUrlRef = useRef<string | null>(null);
-    const projectIdRef = useRef<number | null>(null);
+    const projectIdRef = useRef<number | null>(null);   
 
     /* To Store the final output */
     const [output, setOutput] = useState<pollingResponse | null>(
@@ -132,7 +127,7 @@ export default function ImageTransformer() {
                             'Input data saved successfully in database'
                         );
                     } else {
-                        console.error('Cloudinary URL is not stored anywhere');
+                        console.error('Cloudinary URL is not present');
                     }
                 } catch (error) {
                     console.error(`Error while storing input data : ${error}`);
@@ -146,9 +141,9 @@ export default function ImageTransformer() {
                 throw new Error('Failed to get prediction ID');
             }
         } catch (error) {
-            console.error('Error in startProcess:', error);
+            console.error(error);
             toast.error('Error', {
-                description: `Error in startProcess`,
+                description: getErrorMessage(error, `Error in startProcess`),
                 duration: 3000,
             });
             setStatus(STATUS_MAP.ERROR);
@@ -179,7 +174,12 @@ export default function ImageTransformer() {
                         videos: finalData?.data?.videos || [],
                     } as MongoSaveOutput;
 
+                    console.log('Saving output data');
                     await saveOutputData(input);
+
+                    console.log('Calling api to update status to succeeded');
+                    await updateStatus(project_id, STATUS_MAP.SUCCEEDED);
+
                     console.log('Clips Saved into database');
                     toast.success('Enjoy Your clips', {
                         description: 'Process completed Successfully',

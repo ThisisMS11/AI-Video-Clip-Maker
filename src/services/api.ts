@@ -1,10 +1,8 @@
 import { fetchClient } from '../utils/fetchClient';
 import {
-    pollingResponse,
     MongoSaveInput,
     MongoSaveOutput,
     SettingsType,
-    MongoFetchResult,
     APIResponse,
 } from '../types';
 
@@ -50,7 +48,7 @@ export const databaseService = {
     updateStatus: async (project_id: number, status: string) => {
         try {
             const data = await fetchClient<APIResponse>('db/vizard-input', {
-                method: 'POST',
+                method: 'PATCH',
                 body: JSON.stringify({ project_id, status }),
             });
             return data;

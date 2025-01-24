@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createLoggerWithLabel } from '@/app/api/utils/logger';
 import { currentUser } from '@clerk/nextjs/server';
 import clientPromise from '@/app/api/utils/mongoClient';
@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
         const {
             status = STATUS_MAP.PROCESSING,
             project_id,
+            project_name,
             video_url,
             video_type,
             prefer_length,
@@ -122,6 +123,7 @@ export async function POST(request: NextRequest) {
             status,
             video_url,
             project_id,
+            project_name,
             video_type,
             prefer_length,
             lang,

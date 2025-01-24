@@ -45,3 +45,8 @@ export const convertKeysToSnakeCase = (obj: any): any => {
     }
     return obj;
 };
+
+export const getErrorMessage = (error: any, defaultMessage: string) => {
+    const message = error instanceof Error ? error.message : defaultMessage;
+    return message;
+};

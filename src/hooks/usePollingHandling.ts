@@ -2,14 +2,9 @@ import {
     APIResponse,
     MongoSaveInput,
     MongoSaveOutput,
-    pollingResponse,
     SettingsType,
 } from '@/types';
-import {
-    cloudinaryService,
-    vizardService,
-    databaseService,
-} from '@/services/api';
+import { vizardService, databaseService } from '@/services/api';
 import { STATUS_MAP } from '@/constants';
 import { convertKeysToSnakeCase } from '@/utils/utilFunctions';
 
