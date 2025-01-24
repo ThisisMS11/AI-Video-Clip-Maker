@@ -30,9 +30,7 @@ export const useProcess = () => {
         } = args;
 
         /* upload the image to cloudinary if not already uploaded */
-        let uploadedUrl =
-            'https://res.cloudinary.com/cloudinarymohit/video/upload/v1737657302/task_4_AI_Generated_Clips_Original/pqpnylg1sfxqirtvydeh.mp4' ||
-            cloudinaryUrlRef.current;
+        let uploadedUrl = cloudinaryUrlRef.current;
 
         if (!uploadedUrl) {
             setStatus(STATUS_MAP.UPLOADING);
@@ -57,7 +55,7 @@ export const useProcess = () => {
                     videoUrl: uploadedUrl as string,
                 };
 
-                updateSetting(SETTINGS_MAP.VIDEO_URL, uploadedUrl);
+                updateSetting(SETTINGS_MAP.VIDEO_URL, uploadedUrl as string);
 
                 /* transform the image */
                 try {

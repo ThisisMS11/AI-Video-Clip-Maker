@@ -16,6 +16,7 @@ export default function RightSideProcess({
     output,
     onRetry,
 }: VideoPreviewProps) {
+    console.log({ status, output });
     switch (status) {
         case STATUS_MAP.UPLOADING:
             return (
@@ -46,7 +47,7 @@ export default function RightSideProcess({
                 <div className="h-[100%]">
                     {output ? (
                         // @ts-ignore
-                        <VideoOutputDisplay outputs={output.videos} />
+                        <VideoOutputDisplay videos={output.videos} />
                     ) : (
                         <div className="h-full flex items-center justify-center">
                             <p className="text-muted-foreground">

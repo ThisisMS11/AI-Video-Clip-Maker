@@ -30,9 +30,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { project_id, outputs } = body;
+        const { project_id, videos } = body;
         logger.info(
-            `projectID : ${project_id} outputs : ${JSON.stringify(outputs)}`
+            `project_id : ${project_id} videos : ${JSON.stringify(videos)}`
         );
         if (!project_id) {
             logger.warn('Missing project_id in request');
@@ -67,22 +67,22 @@ export async function POST(request: NextRequest) {
         const db = client.db(process.env.DB_NAME);
         const collection = db.collection(process.env.OUTPUTS_COLLECTION);
 
-        logger.info(`Iterating over the output length : ${outputs.length}`);
+        logger.info(`Iterating over the output length : ${videos.length}`);
 
-        if (!outputs || outputs.length === 0) {
-            logger.warn(`No outputs provided for project_id: ${project_id}`);
-            return makeResponse(400, false, 'No outputs provided', null);
+        if (!videos || videos.length === 0) {
+            logger.warn(`No videos provided for project_id: ${project_id}`);
+            return makeResponse(400, false, 'No videos provided', null);
         }
 
-        // Filter out outputs with video_ids that already exist in the database
+        // Filter out videos with video_ids that already exist in the database
         const existingVideoIds = await collection.distinct('video_id', {
             video_id: {
-                $in: outputs.filter((o) => o.video_id).map((o) => o.video_id),
+                $in: videos.filter((o) => o.video_id).map((o) => o.video_id),
             },
         });
 
         // Prepare documents for insertion, excluding ones with existing video_ids
-        const documents = outputs
+        const documents = videos
             .filter(
                 (output: BaseOutput) =>
                     !output.video_id ||

@@ -58,7 +58,7 @@ export async function GET() {
             {
                 $limit: 100,
             },
-            // Lookup outputs from the outputs collection
+            // Lookup videos from the videos collection
             {
                 $lookup: {
                     from: process.env.OUTPUTS_COLLECTION,

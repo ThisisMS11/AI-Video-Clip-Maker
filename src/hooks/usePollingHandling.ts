@@ -11,6 +11,7 @@ import {
     databaseService,
 } from '@/services/api';
 import { STATUS_MAP } from '@/constants';
+import { convertKeysToSnakeCase } from '@/utils/utilFunctions';
 
 export const usePollingHandling = () => {
     /* Get prediction data from redis */
@@ -31,19 +32,12 @@ export const usePollingHandling = () => {
         cloudinaryUrl: string
     ) => {
         try {
+            const snakeCasedData = convertKeysToSnakeCase(data);
             const settings = {
                 project_id,
                 status: STATUS_MAP.PROCESSING,
                 video_url: cloudinaryUrl,
-                video_type: data.videoType,
-                lang: data.lang,
-                prefer_length: data.preferLength,
-                ext: data.ext,
-                subtitle_switch: data.subtitleSwitch,
-                headline_switch: data.headlineSwitch,
-                max_clip_number: data.maxClipNumber,
-                keywords: data.keywords,
-                remove_silence_switch: data.removeSilenceSwitch,
+                ...snakeCasedData,
             } as MongoSaveInput;
 
             const response: APIResponse =
@@ -61,8 +55,9 @@ export const usePollingHandling = () => {
     const saveOutputData = async (data: MongoSaveOutput) => {
         try {
             /* Saving output data to mongoDB */
+            const snakeCasedData = convertKeysToSnakeCase(data);
             const response: APIResponse =
-                await databaseService.saveOutputInfo(data);
+                await databaseService.saveOutputInfo(snakeCasedData);
             if (!response.success) {
                 throw new Error(response.message);
             }

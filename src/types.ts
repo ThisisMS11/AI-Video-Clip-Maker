@@ -30,7 +30,7 @@ export type MongoSaveInput = BaseVideoSettings & {
 
 export type MongoSaveOutput = {
     project_id: number;
-    outputs: BaseOutput[];
+    videos: BaseOutput[];
 };
 
 export type MongoFetchResult = {

@@ -285,7 +285,7 @@ export function ImageHistoryModal({
             >
                 <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
-                        <DialogTitle>Process Outputs</DialogTitle>
+                        <DialogTitle>Process videos</DialogTitle>
                     </DialogHeader>
                     {selectedOutput && (
                         <div className="grid grid-cols-1 gap-4">

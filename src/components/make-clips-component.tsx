@@ -19,8 +19,13 @@ import {
 import { Atom } from 'lucide-react';
 import { useProcess } from '@/hooks/useProcess';
 import { usePollingHandling } from '@/hooks/usePollingHandling';
-import { SETTINGS_MAP, STATUS_MAP } from '@/constants';
-import { APIResponse, MongoSaveOutput, SettingsType } from '@/types';
+import { samplePollingResponse, SETTINGS_MAP, STATUS_MAP } from '@/constants';
+import {
+    APIResponse,
+    MongoSaveOutput,
+    pollingResponse,
+    SettingsType,
+} from '@/types';
 import { WAIT_TIMES, INITIAL_SETTINGS } from '@/constants';
 import { delay } from '@/utils/utilFunctions';
 
@@ -32,6 +37,11 @@ export default function ImageTransformer() {
     /* persistent states */
     const cloudinaryUrlRef = useRef<string | null>(null);
     const projectIdRef = useRef<number | null>(null);
+
+    /* To Store the final output */
+    const [output, setOutput] = useState<pollingResponse | null>(
+        samplePollingResponse
+    );
 
     /* Custom Hooks */
     const { settings, setSettings, updateSetting } = useMediaSettings();
@@ -50,8 +60,6 @@ export default function ImageTransformer() {
         setStatus,
         cloudinaryOriginalUrl,
         setCloudinaryOriginalUrl,
-        output,
-        setOutput,
         setProjectId,
         startProcessingMedia,
     } = useMediaProcessing();
@@ -103,6 +111,7 @@ export default function ImageTransformer() {
             /* upload the image to cloudinary and start the prediction */
             console.log('Calling the startProcess');
             const projectId = await startProcess(args);
+            console.log(`ProjectID : ${projectId}`);
 
             if (projectId) {
                 setProjectId(projectId);
@@ -150,17 +159,26 @@ export default function ImageTransformer() {
     const handleProcessEnd = async (finalData: APIResponse) => {
         const isSuccess = finalData?.data?.status === STATUS_MAP.SUCCEEDED;
         const project_id = projectIdRef.current as number;
-        setStatus(isSuccess ? STATUS_MAP.SUCCEEDED : STATUS_MAP.FAILED);
 
         try {
             if (isSuccess) {
-                const input: MongoSaveOutput = {
-                    project_id,
-                    outputs: finalData?.data?.videos || [],
-                };
-
-                /* Saving clips information to Database */
                 try {
+                    /* let's first set the output for the UI */
+                    const input_ui = {
+                        code: finalData.data.code,
+                        projectId: project_id,
+                        videos: finalData?.data?.videos || [],
+                    } as pollingResponse;
+
+                    setOutput(input_ui);
+                    setStatus(STATUS_MAP.SUCCEEDED);
+
+                    /* Saving clips information to Database */
+                    const input = {
+                        project_id,
+                        videos: finalData?.data?.videos || [],
+                    } as MongoSaveOutput;
+
                     await saveOutputData(input);
                     console.log('Clips Saved into database');
                     toast.success('Enjoy Your clips', {
@@ -172,18 +190,18 @@ export default function ImageTransformer() {
                 }
             } else {
                 try {
+                    setStatus(STATUS_MAP.FAILED);
                     await updateStatus(project_id, STATUS_MAP.FAILED);
                     console.info(
                         `Project ${project_id} status updated to ${STATUS_MAP.FAILED}`
                     );
+                    toast.error('Failed', {
+                        description: `Process Failed ${finalData.message}`,
+                        duration: 3000,
+                    });
                 } catch (error) {
                     console.error(`Status update operation failed: ${error}`);
                 }
-
-                toast.error('Failed', {
-                    description: 'Process Failed! Please try again',
-                    duration: 3000,
-                });
             }
         } catch (error) {
             console.error(`Unexpected error during process handling: ${error}`);
@@ -207,11 +225,7 @@ export default function ImageTransformer() {
                     setStatus(STATUS_MAP.PROCESSING);
                     await delay(WAIT_TIMES.POLLING_SERVICE);
                 } else {
-                    setStatus(STATUS_MAP.FAILED);
-                    toast.error('Error', {
-                        description: `Process Failed ${pollingData.message}`,
-                        duration: 3000,
-                    });
+                    handleProcessEnd(pollingData);
                     return;
                     /* TODO : update the data of project in db as failed */
                 }
@@ -271,11 +285,6 @@ export default function ImageTransformer() {
                             output={output}
                             onRetry={onProcess}
                         />
-
-                        {/* {(status === STATUS_MAP.SUCCEEDED ||
-                            status === STATUS_MAP.FAILED) && (
-                            <Statistics data={output} />
-                        )} */}
                     </div>
                 </div>
 

@@ -1,4 +1,5 @@
 import { RETRY_CONFIG } from '@/constants';
+import _ from 'lodash';
 
 export const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-US', {
@@ -30,4 +31,17 @@ export const calculateBackoff = (retryCount: number): number => {
     const maxDelay = Math.min(exponentialDelay, RETRY_CONFIG.MAX_DELAY);
     const jitter = maxDelay * RETRY_CONFIG.JITTER_FACTOR * Math.random();
     return maxDelay + jitter;
+};
+
+export const convertKeysToSnakeCase = (obj: any): any => {
+    if (Array.isArray(obj)) {
+        return obj.map(convertKeysToSnakeCase);
+    } else if (obj !== null && typeof obj === 'object') {
+        return Object.keys(obj).reduce((acc, key) => {
+            const snakeKey = _.snakeCase(key);
+            acc[snakeKey] = convertKeysToSnakeCase(obj[key]);
+            return acc;
+        }, {} as any);
+    }
+    return obj;
 };

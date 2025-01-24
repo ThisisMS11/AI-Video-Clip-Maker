@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import {
-    ChevronLeft,
-    ChevronRight,
-    X,
-    InfoIcon,
-    ArrowRight,
-    ArrowLeft,
-} from 'lucide-react';
+import { X, InfoIcon, ArrowRight, ArrowLeft } from 'lucide-react';
 import { clipType } from '@/types';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -123,15 +114,11 @@ const VideoCarousel: React.FC<{ videos: clipType[] }> = ({ videos }) => {
     );
 };
 
-export default function VideoOutputDisplay({
-    outputs,
-}: {
-    outputs: clipType[];
-}) {
-    console.log({ outputs });
+export default function VideoOutputDisplay({ videos }: { videos: clipType[] }) {
+    console.log({ videos });
 
-    console.log(outputs.length);
-    if (!outputs || outputs.length === 0) {
+    console.log(videos.length);
+    if (!videos || videos.length === 0) {
         return (
             <div className="h-full flex items-center justify-center">
                 <p className="text-muted-foreground">No Videos Found</p>
@@ -139,5 +126,5 @@ export default function VideoOutputDisplay({
         );
     }
 
-    return <VideoCarousel videos={outputs} />;
+    return <VideoCarousel videos={videos} />;
 }
