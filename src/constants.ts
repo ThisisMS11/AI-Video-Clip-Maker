@@ -11,7 +11,7 @@ export const STATUS_MAP = {
 
 export const RETRIES = {
     MONGO_DB_SERVICE: 5,
-    VIZARD_SERVICE: 5,
+    VIZARD_SERVICE: 9,
     CLOUDINARY_SERVICE: 5,
 } as const;
 
@@ -284,3 +284,11 @@ export const ERROR_MESSAGES: Record<number, string> = {
 };
 
 export const SUPPORTED_FORMATS = ['mp4', 'mov'];
+
+export const VIDEO_TYPES = {
+    REMOTE: 1,
+    YOUTUBE: 2,
+    GOOGLE_DRIVE: 3,
+    VIMEO: 4,
+    STREAMYARD: 5,
+} as const;

@@ -1,4 +1,4 @@
-import { RETRY_CONFIG } from '@/constants';
+import { RETRY_CONFIG, VIDEO_TYPES } from '@/constants';
 import _ from 'lodash';
 
 export const formatDate = (dateString: string) => {
@@ -49,4 +49,28 @@ export const convertKeysToSnakeCase = (obj: any): any => {
 export const getErrorMessage = (error: any, defaultMessage: string) => {
     const message = error instanceof Error ? error.message : defaultMessage;
     return message;
+};
+
+export const checkVideoTypeSetting = (url: string, videoType: number) => {
+    // YouTube handling
+    if (url.includes('youtube.com/watch') || url.includes('youtu.be/')) {
+        if (Number(videoType) != VIDEO_TYPES.YOUTUBE) return false;
+    }
+
+    // Vimeo URL handling
+    if (url.includes('vimeo.com/')) {
+        if (Number(videoType) != VIDEO_TYPES.VIMEO) return false;
+    }
+
+    // Google Drive handling
+    if (url.includes('drive.google.com/')) {
+        if (Number(videoType) != VIDEO_TYPES.GOOGLE_DRIVE) return false;
+    }
+
+    // Streamyard handling
+    if (url.includes('streamyard.com/')) {
+        if (Number(videoType) != VIDEO_TYPES.STREAMYARD) return false;
+    }
+
+    return true;
 };

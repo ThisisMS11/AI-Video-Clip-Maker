@@ -127,9 +127,7 @@ async function retryAPICall(settings: SettingsType): Promise<{
                 // If not a known success code, and we haven't exhausted retries
                 if (attempt < RETRIES.VIZARD_SERVICE) {
                     // Exponential backoff with jitter
-                    const backoffTime =
-                        Math.pow(2, attempt) * 1000 +
-                        Math.floor(Math.random() * 1000);
+                    const backoffTime = calculateBackoff(attempt);
 
                     logger.info(
                         `Retrying in ${backoffTime}ms due to code ${data.code}`

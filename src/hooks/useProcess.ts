@@ -5,37 +5,41 @@ import { WAIT_TIMES, SETTINGS_MAP } from '@/constants';
 import { RefObject } from 'react';
 
 interface Args {
-    uploadCareCdnUrl: string;
+    userMediaLink: string;
     setCloudinaryOriginalUrl: (url: string | null) => void;
     setStatus: (status: string) => void;
     settings: SettingsType;
     updateSetting: (key: keyof SettingsType, value: string | number) => void;
     startProcessingMedia: (settings: SettingsType) => Promise<string>;
     cloudinaryUrlRef: RefObject<string | null>;
+    isPublicUrl: boolean | null;
 }
 
 export const useProcess = () => {
     /* Handle image processing : returns projectId or error */
     const startProcess = async (args: Args) => {
         const {
-            uploadCareCdnUrl,
+            userMediaLink,
             setCloudinaryOriginalUrl,
             setStatus,
             settings,
             updateSetting,
             startProcessingMedia,
             cloudinaryUrlRef,
+            isPublicUrl,
         } = args;
 
         /* upload the image to cloudinary if not already uploaded */
-        let uploadedUrl = cloudinaryUrlRef.current;
+        let uploadedUrl = isPublicUrl
+            ? settings.videoUrl
+            : cloudinaryUrlRef.current;
 
-        if (!uploadedUrl) {
+        if (!uploadedUrl && !isPublicUrl) {
             setStatus(STATUS_MAP.UPLOADING);
             try {
                 console.log(`Uploading video to cloudinary`);
                 const uploadResult = await cloudinaryService.upload(
-                    uploadCareCdnUrl,
+                    userMediaLink,
                     MEDIA_TYPE.ORIGINAL
                 );
 
@@ -87,12 +91,17 @@ export const useProcess = () => {
             }
         } else {
             // If cloudinaryOriginalUrl exists, use existing settings
+            // console.log('line no 92 : ', { settings });
             try {
                 setStatus(STATUS_MAP.PROCESSING);
                 const updatedSettings: SettingsType = {
                     ...settings,
-                    videoUrl: cloudinaryUrlRef.current || uploadedUrl,
+                    videoUrl:
+                        isPublicUrl && cloudinaryUrlRef.current
+                            ? cloudinaryUrlRef.current
+                            : settings.videoUrl,
                 };
+
                 console.log(
                     'Already uploaded to cloudinary, calling startProcessingMedia'
                 );

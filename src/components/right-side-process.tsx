@@ -58,7 +58,7 @@ export default function RightSideProcess({
             );
         case STATUS_MAP.FAILED:
             return (
-                <div className="h-[60%] flex items-center flex-col justify-center space-y-4">
+                <div className="h-full flex items-center flex-col justify-center space-y-4">
                     <div className="mx-auto w-20 h-20 rounded-full bg-red-100 flex items-center justify-center">
                         <XCircle className="w-10 h-10 text-red-600" />
                     </div>
@@ -66,8 +66,8 @@ export default function RightSideProcess({
                         Processing Failed
                     </h2>
                     <p className="text-muted-foreground">
-                        Please try again or contact support if the issue
-                        persists.
+                        Make sure you have choosen correct set of settings or
+                        contact support if the issue persists.
                     </p>
                     <Button variant="outline" onClick={onRetry}>
                         <RefreshCcw className="w-4 h-4 mr-2" />

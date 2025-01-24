@@ -22,16 +22,19 @@ import { usePollingHandling } from '@/hooks/usePollingHandling';
 import { samplePollingResponse, SETTINGS_MAP, STATUS_MAP } from '@/constants';
 import { APIResponse, MongoSaveOutput, pollingResponse } from '@/types';
 import { WAIT_TIMES, INITIAL_SETTINGS } from '@/constants';
-import { delay, getErrorMessage } from '@/utils/utilFunctions';
+import {
+    delay,
+    getErrorMessage,
+    checkVideoTypeSetting,
+} from '@/utils/utilFunctions';
 
 export default function ImageTransformer() {
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
-    const [uploadCareCdnUrl, setUploadCareCdnUrl] = useState<string | null>(
-        null
-    );
+    const [userMediaLink, setUserMediaLink] = useState<string | null>(null);
     /* persistent states */
     const cloudinaryUrlRef = useRef<string | null>(null);
     const projectIdRef = useRef<number | null>(null);
+    const [isPublicUrl, setIsPublicUrl] = useState<boolean | null>(null);
 
     /* To Store the final output */
     const [output, setOutput] = useState<pollingResponse | null>(
@@ -64,17 +67,18 @@ export default function ImageTransformer() {
         setOutput(null);
         setProjectId(null);
         setStatus(STATUS_MAP.DEFAULT);
-        setUploadCareCdnUrl(null);
+        setUserMediaLink(null);
         setCloudinaryOriginalUrl(null);
         cloudinaryUrlRef.current = null;
         setSettings(INITIAL_SETTINGS);
+        setIsPublicUrl(null);
     };
 
     /* Start processing image */
     const onProcess = async () => {
         // console.log('SETTINGS : ', settings);
         try {
-            if (!uploadCareCdnUrl) {
+            if (!userMediaLink) {
                 toast.error('Error', {
                     description: 'No image URL provided',
                     duration: 3000,
@@ -90,8 +94,17 @@ export default function ImageTransformer() {
                 return;
             }
 
+            if (!checkVideoTypeSetting(userMediaLink, settings.videoType)) {
+                toast.error('Error', {
+                    description: 'Please choose the correct video type',
+                    duration: 3000,
+                });
+                return;
+            }
+
             const args = {
-                uploadCareCdnUrl,
+                userMediaLink,
+                isPublicUrl,
                 cloudinaryOriginalUrl,
                 setCloudinaryOriginalUrl,
                 setStatus,
@@ -258,10 +271,11 @@ export default function ImageTransformer() {
                         <Card className="h-full">
                             <CardContent className="p-2  h-full">
                                 <MediaUploader
-                                    uploadCareCdnUrl={uploadCareCdnUrl}
-                                    onUploadSuccess={setUploadCareCdnUrl}
+                                    userMediaLink={userMediaLink}
+                                    onUploadSuccess={setUserMediaLink}
                                     onRemoveMedia={onRemoveMedia}
                                     onUpdateSetting={updateSetting}
+                                    setIsPublicUrl={setIsPublicUrl}
                                 />
 
                                 <Separator className="my-2" />
