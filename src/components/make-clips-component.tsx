@@ -27,7 +27,7 @@ import { delay, getErrorMessage } from '@/utils/utilFunctions';
 export default function ImageTransformer() {
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
     const [uploadCareCdnUrl, setUploadCareCdnUrl] = useState<string | null>(
-        'https://ucarecdn.com/1a35dda7-4185-4f9d-a2e0-602e8b572836/'
+        null
     );
     /* persistent states */
     const cloudinaryUrlRef = useRef<string | null>(null);
