@@ -125,26 +125,32 @@ export default function ImageTransformer() {
                 setProjectId(projectId);
                 projectIdRef.current = projectId;
                 try {
-                    if (cloudinaryUrlRef.current) {
-                        console.log(
-                            `cloudinarUrlRef.current : `,
-                            cloudinaryUrlRef.current
-                        );
-                        updateSetting(
-                            SETTINGS_MAP.VIDEO_URL,
-                            cloudinaryUrlRef.current
-                        );
-                        await saveInputData(
-                            projectId,
-                            settings,
-                            cloudinaryUrlRef.current
-                        );
-                        console.log(
-                            'Input data saved successfully in database'
-                        );
+                    if (!isPublicUrl) {
+                        if (cloudinaryUrlRef.current) {
+                            console.log(
+                                `cloudinarUrlRef.current : `,
+                                cloudinaryUrlRef.current
+                            );
+                            // console.log('Settings at line no : 134', {settings});
+                            updateSetting(
+                                SETTINGS_MAP.VIDEO_URL,
+                                cloudinaryUrlRef.current
+                            );
+                            await saveInputData(
+                                projectId,
+                                settings,
+                                cloudinaryUrlRef.current
+                            );
+                        } else {
+                            console.error(
+                                `cloudinaryUrlRef.current is null can't save inputData`
+                            );
+                        }
                     } else {
-                        console.error('Cloudinary URL is not present');
+                        console.log('Saving input data for public URL');
+                        await saveInputData(projectId, settings);
                     }
+                    console.log('Input data saved successfully in database');
                 } catch (error) {
                     console.error(`Error while storing input data : ${error}`);
                 }
@@ -271,7 +277,6 @@ export default function ImageTransformer() {
                         <Card className="h-full">
                             <CardContent className="p-2  h-full">
                                 <MediaUploader
-                                    userMediaLink={userMediaLink}
                                     onUploadSuccess={setUserMediaLink}
                                     onRemoveMedia={onRemoveMedia}
                                     onUpdateSetting={updateSetting}

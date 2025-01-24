@@ -13,7 +13,6 @@ import { SETTINGS_MAP, SUPPORTED_FORMATS } from '@/constants';
 import { useState } from 'react';
 
 interface VideoUploaderProps {
-    userMediaLink: string | null;
     onUploadSuccess: (url: string) => void;
     onRemoveMedia: () => void;
     onUpdateSetting: (key: keyof SettingsType, value: any) => void;
@@ -21,7 +20,6 @@ interface VideoUploaderProps {
 }
 
 export default function VideoUploader({
-    userMediaLink,
     onUploadSuccess,
     onRemoveMedia,
     onUpdateSetting,
@@ -77,6 +75,7 @@ export default function VideoUploader({
             // Fallback to original URL if no specific handling
             return url;
         } catch (error) {
+            console.warn(`URL Conversion Error ${error}`);
             toast.error('URL Conversion Error', {
                 description: 'Could not convert the video URL.',
                 duration: 3000,
@@ -118,6 +117,7 @@ export default function VideoUploader({
                 onUpdateSetting(SETTINGS_MAP.VIDEO_URL, videoUrl);
                 setIsPublicUrl(true);
             } catch (error) {
+                console.log(`handleUrlSubmit error : ${error}`);
                 toast.error('Invalid URL', {
                     description: 'Please enter a valid public video URL.',
                     duration: 5000,
@@ -134,7 +134,7 @@ export default function VideoUploader({
                         <CardContent className="flex items-center justify-center p-2">
                             <div className="flex flex-col w-full h-full">
                                 <FileUploaderRegular
-                                    sourceList="local, url, camera, dropbox, gdrive"
+                                    sourceList="local"
                                     classNameUploader="uc-light uc-red"
                                     pubkey={
                                         process.env

@@ -24,7 +24,7 @@ export const usePollingHandling = () => {
     const saveInputData = async (
         project_id: number,
         data: SettingsType,
-        cloudinaryUrl: string
+        cloudinaryUrl: string | null = null
     ) => {
         try {
             const snakeCasedData = convertKeysToSnakeCase(data);
@@ -32,7 +32,7 @@ export const usePollingHandling = () => {
                 ...snakeCasedData,
                 project_id,
                 status: STATUS_MAP.PROCESSING,
-                video_url: cloudinaryUrl,
+                ...(cloudinaryUrl && { video_url: cloudinaryUrl }),
             } as MongoSaveInput;
 
             // console.log('Settings sent to saveInputInfo :', settings)
