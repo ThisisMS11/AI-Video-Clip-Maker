@@ -1,33 +1,71 @@
-import { STATUS_MAP, MEDIA_TYPE } from '@/constants';
-import { cloudinaryService } from '@/services/api';
-import { SettingsType } from '@/types';
-import { WAIT_TIMES, SETTINGS_MAP } from '@/constants';
-import { RefObject } from 'react';
+import { SettingsType, APIResponse } from '@/types';
+import { useRef, useState } from 'react';
+import { cloudinaryService, vizardService } from '@/services/api';
+import { MEDIA_TYPE, SETTINGS_MAP, STATUS_MAP, WAIT_TIMES } from '@/constants';
 
-interface Args {
+export interface Args {
     userMediaLink: string;
-    setCloudinaryOriginalUrl: (url: string | null) => void;
-    setStatus: (status: string) => void;
     settings: SettingsType;
     updateSetting: (key: keyof SettingsType, value: string | number) => void;
-    startProcessingMedia: (settings: SettingsType) => Promise<string>;
-    cloudinaryUrlRef: RefObject<string | null>;
     isPublicUrl: boolean | null;
 }
 
 export const useProcess = () => {
-    /* Handle image processing : returns projectId or error */
+    const [projectId, setProjectId] = useState<number | null>(null);
+    const projectIdRef = useRef<number | null>(null);
+
+    const [status, setStatus] = useState<string>(STATUS_MAP.DEFAULT);
+    const [cloudinaryOriginalUrl, setCloudinaryOriginalUrl] = useState<
+        string | null
+    >(null);
+    const cloudinaryUrlRef = useRef<string | null>(null);
+
+    const validateSettings = (settings: SettingsType): string | null => {
+        if (!settings.videoUrl) return 'Error: A video URL must be provided.';
+        if (!settings.lang) return 'Error: Language selection is required.';
+        if (settings.preferLength.length == 0)
+            return 'Error: Please choose at least one preferred length.';
+        if (settings.videoType == undefined || settings.videoType == null)
+            return 'Error: A video type must be specified.';
+
+        if (!process.env.NEXT_PUBLIC_APP_URL)
+            return 'Error: The application URL is not configured in the environment variables.';
+        return null;
+    };
+
+    const startProcessingMedia = async (
+        settings: SettingsType
+    ): Promise<string> => {
+        const validationError = validateSettings(settings);
+        if (validationError) {
+            console.error(validationError);
+            throw new Error(validationError);
+        }
+
+        try {
+            console.info('Calling processMedia function with settings : ', {
+                settings,
+            });
+            const response: APIResponse =
+                await vizardService.processMedia(settings);
+            if (!response.success) {
+                throw new Error(response.message);
+            }
+            setProjectId(response.data.projectId);
+            return response.data.projectId;
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to process media';
+            console.error('Processing error:', message);
+            throw new Error(`Error starting processing : ${message}`);
+        }
+    };
+
+    /* start the process */
     const startProcess = async (args: Args) => {
-        const {
-            userMediaLink,
-            setCloudinaryOriginalUrl,
-            setStatus,
-            settings,
-            updateSetting,
-            startProcessingMedia,
-            cloudinaryUrlRef,
-            isPublicUrl,
-        } = args;
+        const { userMediaLink, settings, updateSetting, isPublicUrl } = args;
 
         /* upload the image to cloudinary if not already uploaded */
         let uploadedUrl = isPublicUrl
@@ -118,6 +156,15 @@ export const useProcess = () => {
     };
 
     return {
+        status,
+        setStatus,
+        projectId,
+        projectIdRef,
+        setProjectId,
+        cloudinaryOriginalUrl,
+        cloudinaryUrlRef,
+        setCloudinaryOriginalUrl,
+        startProcessingMedia,
         startProcess,
     };
 };

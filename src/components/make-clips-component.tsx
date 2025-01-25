@@ -1,6 +1,5 @@
 'use client';
-import { useRef, useState } from 'react';
-import { useMediaProcessing } from '@/hooks/useMediaProcessing';
+import { useState } from 'react';
 import { useMediaSettings } from '@/hooks/useMediaSettings';
 import MediaUploader from '@/components/media-uploader';
 import RightSideProcess from '@/components/right-side-process';
@@ -32,8 +31,6 @@ export default function ImageTransformer() {
     const [historyModalOpen, setHistoryModalOpen] = useState(false);
     const [userMediaLink, setUserMediaLink] = useState<string | null>(null);
     /* persistent states */
-    const cloudinaryUrlRef = useRef<string | null>(null);
-    const projectIdRef = useRef<number | null>(null);
     const [isPublicUrl, setIsPublicUrl] = useState<boolean | null>(null);
 
     /* To Store the final output */
@@ -51,16 +48,15 @@ export default function ImageTransformer() {
         updateStatus,
     } = usePollingHandling();
 
-    const { startProcess } = useProcess();
-
     const {
         status,
         setStatus,
-        cloudinaryOriginalUrl,
         setCloudinaryOriginalUrl,
         setProjectId,
-        startProcessingMedia,
-    } = useMediaProcessing();
+        projectIdRef,
+        cloudinaryUrlRef,
+        startProcess,
+    } = useProcess();
 
     /* To remove the image from the state */
     const onRemoveMedia = () => {
@@ -104,16 +100,9 @@ export default function ImageTransformer() {
 
             const args = {
                 userMediaLink,
-                isPublicUrl,
-                cloudinaryOriginalUrl,
-                setCloudinaryOriginalUrl,
-                setStatus,
                 settings,
-                setSettings,
-                startProcess,
                 updateSetting,
-                cloudinaryUrlRef,
-                startProcessingMedia,
+                isPublicUrl,
             };
 
             /* upload the image to cloudinary and start the prediction */
